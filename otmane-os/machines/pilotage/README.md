@@ -19,9 +19,30 @@
   dans `DÉPENSES` (SUIVI DES DÉPENSES) : `food = Matières premières + Boissons`, `labor = Salaires`.
 - **Alertes couleur** (vert / orange / rouge) selon les objectifs `TARGET_*`.
 
+## Saisie du CA AUTOMATISÉE (export caisse → table CA_CAISSE)
+La saisie du CA n'est pas que manuelle : elle est **alimentée par tes exports de caisse**.
+```
+Export caisse (CSV/Excel) ─dépôt→ /MAKI ONE/<exercice>/CAISSE/
+        └─[IngestCaisse.gs, horaire] parse la feuille de caisse → table CA_CAISSE (mensuelle)
+              └─ déplace le fichier → CAISSE/TRAITEES/
+        Cockpit : CA du mois lu en priorité depuis CA_CAISSE
+```
+- **Format réel géré** : « Feuille de caisse » clé/valeur, séparée par `;`, décimales à virgule
+  (ex. `ESM - feuille_de_caisse_Septembre_2025.csv`). Période en en-tête (`sept-25` → `2025-09`).
+- **Extrait** : `CA HT`, `CA TTC`, ventilation par moyen de paiement (CB, espèces, en ligne,
+  ticket resto) et **agrégateurs** (UBER EATS / Deliveroo / Just Eat), commandes retirées.
+- **Granularité = mensuelle** (l'export est mensuel) → le cockpit calcule food/labor/prime cost
+  sur ce CA réel. Couverts/heures restent en saisie manuelle (absents de la feuille de caisse).
+- **100 % déterministe** : pas besoin de Claude par fichier. Pour les `.xlsx`, activer le
+  *Service avancé Drive* (Services ▸ Drive API) pour la conversion.
+
+> Dossier cible **défini** : `/MAKI ONE/2025 - 2026/CAISSE/` (dépôt) + `CAISSE/TRAITEES/` (traité).
+
 ## Fichiers
-- `apps_script/Code.gs` — serveur : `doGet` (sert l'UI), `saveDaily`, `getCockpit`, `getRecentDays`.
+- `apps_script/Code.gs` — serveur cockpit : `doGet`, `saveDaily`, `getCockpit`, `getRecentDays`.
 - `apps_script/Index.html` — interface mobile (cockpit + formulaire), thème sombre MAKI.
+- `apps_script/IngestCaisse.gs` — ingestion auto des feuilles de caisse → `CA_CAISSE`
+  (`ingestCaisse`, `installCaisseTrigger`, `dryRunCaisse(fileId)`).
 
 ## Déploiement
 1. Nouveau projet Apps Script → 2 fichiers : `Code.gs` + `Index.html` (HTML).

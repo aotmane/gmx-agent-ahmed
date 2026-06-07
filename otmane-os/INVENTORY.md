@@ -6,7 +6,8 @@
 | Domaine | LA TÂCHE (avant) | LA SOLUTION ATTENDUE | LA MACHINE | Outils MCP / tech | Statut |
 |---------|------------------|----------------------|------------|-------------------|--------|
 | **Foundation** | Centraliser le savoir, les clients, les KPIs | Une base unique qui alimente les autres machines | `Second Brain` | Google Drive, n8n, data store | spec |
-| **Pilotage** | Suivre CA, food/labor/prime cost au quotidien | Cockpit mobile + saisie du CA quotidien | `Pilotage` | Apps Script Web App + Sheets | 🔧 livré |
+| **Pilotage** | Suivre CA, food/labor/prime cost | Cockpit mobile + saisie auto du CA | `Pilotage` | Apps Script Web App + Sheets | 🔧 livré |
+| **Pilotage** | Saisir le CA sans ressaisie manuelle | Ingestion auto des exports de caisse déposés | `Pilotage` | Apps Script (dossier CAISSE) → CA_CAISSE | 🔧 livré |
 | **Email** | Trier la boîte GMX, repérer urgents/factures/clients | Tri auto par priorité + brouillons de réponse | `Email & Admin` | IMAP GMX, Gmail MCP | ✅ v1 |
 | **Admin** | Relancer devis/factures non payés | Relances programmées automatiques | `Email & Admin` | Gmail, Calendar | spec |
 | **Compta** | Récupérer factures, classer dépenses, préparer TVA | Extraction + catégorisation + export comptable | `Expert-comptable` | Drive, n8n, OCR | spec |

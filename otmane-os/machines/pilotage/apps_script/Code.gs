@@ -88,8 +88,8 @@ function findDateRow_(sheet, date) {
 function getCockpit(yyyymm) {
   var ym = yyyymm || Utilities.formatDate(new Date(), CFG.TZ, 'yyyy-MM');
 
-  // CA + couverts du mois (depuis la saisie)
-  var ca = 0, couverts = 0, hPlan = 0, hPoint = 0, jours = 0;
+  // CA du mois : priorité à la caisse (CA_CAISSE, automatisé) ; couverts/heures = saisie.
+  var ca = 0, couverts = 0, hPlan = 0, hPoint = 0, jours = 0, agregateurs = 0, sourceCa = 'saisie';
   var sheet = ensureSaisie_();
   var last = sheet.getLastRow();
   if (last > 1) {
@@ -100,6 +100,8 @@ function getCockpit(yyyymm) {
       }
     });
   }
+  var caisse = readCaCaisse_(ym);          // feuille de caisse mensuelle (HT)
+  if (caisse) { ca = caisse.ca_ht; agregateurs = caisse.ca_agregateurs; sourceCa = 'caisse'; }
 
   // Achats du mois par catégorie (depuis DÉPENSES, HT)
   var food = 0, labor = 0;
@@ -123,7 +125,7 @@ function getCockpit(yyyymm) {
   var primePct = foodPct + laborPct;
 
   return {
-    mois: ym, jours_saisis: jours,
+    mois: ym, jours_saisis: jours, source_ca: sourceCa, ca_agregateurs: round2_(agregateurs),
     ca_ht: round2_(ca), couverts: couverts,
     panier_moyen: couverts > 0 ? round2_(ca / couverts) : 0,
     heures_planifiees: hPlan, heures_pointees: hPoint, ecart_heures: round2_(hPoint - hPlan),
@@ -137,6 +139,19 @@ function getCockpit(yyyymm) {
     },
     objectifs: { food: pct_(CFG.TARGET_FOOD), labor: pct_(CFG.TARGET_LABOR), prime: pct_(CFG.TARGET_PRIME) }
   };
+}
+
+// CA mensuel depuis la feuille de caisse (table CA_CAISSE alimentée par IngestCaisse).
+function readCaCaisse_(ym) {
+  var sh = SpreadsheetApp.openById(CFG.PILOTAGE_SS_ID).getSheetByName('CA_CAISSE');
+  if (!sh) return null;
+  var last = sh.getLastRow();
+  if (last < 2) return null;
+  var vals = sh.getRange(2, 1, last - 1, 5).getValues(); // Mois, Periode, CA_HT, CA_TTC, CA_agregateurs
+  for (var i = 0; i < vals.length; i++) {
+    if (String(vals[i][0]) === ym) return { ca_ht: n_(vals[i][2]), ca_ttc: n_(vals[i][3]), ca_agregateurs: n_(vals[i][4]) };
+  }
+  return null;
 }
 
 // 7 derniers jours saisis (pour le tableau du cockpit)

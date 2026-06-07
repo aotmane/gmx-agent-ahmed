@@ -121,8 +121,9 @@
   }
   function renderCockpit(c){
     var h='';
-    h+=kpi('CA HT du mois', eur(c.ca_ht), c.jours_saisis+' jours · '+c.couverts+' couverts');
-    h+=kpi('Panier moyen', eur(c.panier_moyen), 'HT / couvert');
+    var srcCa = c.source_ca==='caisse' ? 'feuille de caisse' : (c.jours_saisis+' jours saisis');
+    h+=kpi('CA HT du mois', eur(c.ca_ht), srcCa + (c.ca_agregateurs?(' · agrég. '+eur(c.ca_agregateurs)):''));
+    h+=kpi('Panier moyen', c.couverts?eur(c.panier_moyen):'—', c.couverts?'HT / couvert':'couverts non saisis');
     h+=kpi('Food cost', c.food_pct+' %', 'cible '+c.objectifs.food+' % · '+eur(c.food_eur), c.alertes.food);
     h+=kpi('Labor cost', c.labor_pct+' %', 'cible '+c.objectifs.labor+' % · '+eur(c.labor_eur), c.alertes.labor);
     h+=kpi('Prime cost', c.prime_pct+' %', 'cible '+c.objectifs.prime+' %', c.alertes.prime);
