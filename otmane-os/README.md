@@ -57,17 +57,23 @@ LA TÂCHE (avant)  →  LA SOLUTION ATTENDUE  →  LA MACHINE qui l'exécute
 Chaque dossier de machine contient un `README.md` qui décrit : la tâche, le déclencheur,
 le flux, les **outils MCP** utilisés, et l'état (`spec` / `en cours` / `prod`).
 
-## 4. Stack technique
+## 4. Stack technique — contrainte « Claude Max only »
+
+Tout doit tourner sur l'**abonnement Claude Max + Google Workspace** : **aucun service SaaS
+payant** (pas de n8n/Make cloud, pas de coûts d'API en plus). Voir `AUDIT.md`.
 
 | Couche | Outil | Statut |
 |--------|-------|--------|
-| Orchestrateur | **Claude Code CLI** | cerveau |
-| Workflows no-code | **n8n** / **Make** (MCP) | machines |
-| Email | **Gmail** (MCP) + service IMAP GMX (`email_admin`) | machine 1 |
-| Stockage / docs | **Google Drive** (MCP) | partagé |
-| Agenda | **Google Calendar** (MCP) | partagé |
-| Vidéo / visuels | génération vidéo-image + **Canva** + **Gamma** (MCP) | machine 4 |
+| Cerveau | **Claude (Max)** / Claude Code | orchestrateur |
+| Machines (exécution) | **Google Apps Script** (gratuit, déjà en place) | couche principale |
+| Email | **Gmail** + service IMAP GMX (`email_admin`) | machine 1 |
+| Données / Second Brain | **Google Sheets** (Pilotage + Suivi des dépenses) | source de vérité |
+| Stockage / docs | **Google Drive** | partagé |
+| Agenda | **Google Calendar** | partagé |
 | Secrets | fichier `.env` (jamais commité) | sécurité |
+
+> n8n/Make ne sont envisagés que **self-hosted gratuit** si vraiment nécessaire. Par défaut :
+> Apps Script (le pont `doGet/doPost` existant) + Claude.
 
 ## 5. Sécurité (à lire avant tout)
 
