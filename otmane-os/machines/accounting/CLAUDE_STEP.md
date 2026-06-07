@@ -9,18 +9,22 @@
 
 ## Pipeline complet
 ```
-Gmail ─[IngestFactures.gs, horaire]→ Drive /MAKI ONE/<exercice>/<mois>/
-                                     └→ file INBOX_FACTURES (statut À_TRAITER)
+Gmail ─[IngestFactures.gs, horaire]→ Drive /MAKI ONE/<exercice>/FACTURES/  (boîte à traiter)
+                                     └→ file INBOX_FACTURES (À_TRAITER, avec fileId)
                                             │
               ┌─────────────────────────────┘
               ▼   ÉTAPE CLAUDE (ce document)
    1. lire les lignes À_TRAITER de INBOX_FACTURES   (Drive : read_file_content)
    2. pour chacune, lire le PDF (Drive_URL → read_file_content, supporte le PDF)
    3. extraire les 15 champs (schéma ci-dessous) + appliquer les règles
-   4. appeler WriteDepense ?secret=…&c0=…&…&c14=…   (insère + marque la file)
+   4. appeler WriteDepense ?secret=…&fileId=…&newName=…&c0=…&…&c14=…
               ▼
-   DÉPENSES (ligne propre)  →  DASHBOARD se met à jour
+   DÉPENSES (ligne propre)  +  PDF déplacé → FACTURES/TRAITEES/<AAAA-MM - mois AAAA>
+              ▼
+   DASHBOARD se met à jour
 ```
+> La colonne `fileId` de `INBOX_FACTURES` identifie le PDF à déplacer ; le mois cible
+> (`AAAA-MM - mois AAAA`, minuscules) est calculé par l'endpoint d'après la **date de facture** `c1`.
 
 ## Schéma d'extraction (paramètres de l'endpoint)
 | Param | Colonne | Champ | Règle |
@@ -40,6 +44,8 @@ Gmail ─[IngestFactures.gs, horaire]→ Drive /MAKI ONE/<exercice>/<mois>/
 | `c13`| N | Conformité | `Conforme` ou `À vérifier — <raison>` |
 | `c14`| O | Commentaires | notes (TVA mixte, entité, etc.) |
 | `messageId` | — | (file) | pour marquer INBOX_FACTURES en TRAITÉ |
+| `fileId` | — | (Drive) | id du PDF dans FACTURES → déplacé vers TRAITEES/<mois> |
+| `newName` | — | (Drive) | nom final : `FOURNISSEUR - DD-MM-YYYY - Facture n° XXX.ext` |
 | `secret` | — | auth | = Script Property `WRITE_SECRET` |
 
 ### Catégories valides (sans accents → normalisées côté script)
@@ -80,11 +86,13 @@ c14 = Reverse charge UE. Vérifier si la dépense relève bien de MAKI ONE.
 `GET` (ou `POST`) :
 ```
 {WRITE_DEPENSE_URL}?secret={WRITE_SECRET}
-   &messageId=...&c0=...&c1=...&c2=...&c3=...&c4=...&c5=...&c6=...
+   &messageId=...&fileId=...&newName=...
+   &c0=...&c1=...&c2=...&c3=...&c4=...&c5=...&c6=...
    &c7=...&c8=...&c9=...&c10=...&c11=...&c13=...&c14=...
 ```
 Tous les champs texte doivent être **URL-encodés**. Réponse JSON :
-`{status:"ok", row:N}` · `{status:"skipped_duplicate"}` · `{status:"error", msg:"..."}`.
+`{status:"ok", row:N, traitees:"2026-04 - avril 2026"}` · `{status:"skipped_duplicate"}` ·
+`{status:"error", msg:"..."}`.
 
 ## Sécurité
 - `WriteDepense` exige `WRITE_SECRET` (Script Property, **jamais commité**).

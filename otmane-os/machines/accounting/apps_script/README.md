@@ -9,31 +9,30 @@
 Déclencheur HORAIRE (Apps Script, gratuit)
    └─ ingestFactures()
         • requête Gmail OPTIMISÉE (extensions + mots-clés + expéditeurs fournisseurs connus)
-        • dépose chaque PJ dans  /MAKI ONE/<exercice>/<NN - Mois AAAA>/
+        • DÉPOSE chaque PJ dans la boîte  /MAKI ONE/<exercice>/FACTURES/  (= "à traiter")
         • renomme : « FOURNISSEUR - DD-MM-YYYY - Facture n° XXXXX.ext »
         • empile la facture dans l'onglet INBOX_FACTURES (statut À_TRAITER)
         • pose le label « MAKI-traite » pour ne pas retraiter
 ```
+> Le **classement par mois** dans `…/FACTURES/TRAITEES/<AAAA-MM - mois AAAA>/` se fait à
+> l'**étape Claude** (`WriteDepense`), d'après la **date de facture** (pas la date d'email) —
+> car un email de mai peut contenir une facture d'avril.
 
-### Rangement Drive — exercice décalé (juillet → juin)
-Ton exercice court de **juillet à juin** (confirmé par le Sheet : suivi mensuel *Jui-25 → Jui-26*).
-Le script range donc sous :
+### Rangement Drive — arborescence RÉELLE (Mon Drive)
 ```
-/MAKI ONE/
-   2025 - 2026/
-      01 - Juillet 2025/
-      02 - Août 2025/
-      …
-      07 - Janvier 2026/
-      …
-      12 - Juin 2026/
-   2026 - 2027/
-      01 - Juillet 2026/   …
+Mon Drive/MAKI ONE/
+   2025 - 2026/                         ← exercice (juillet→juin), + COMPTA, BANQUE, SOCIAL…
+      FACTURES/                          ← boîte "à traiter" (dépôt par IngestFactures)
+         TRAITEES/                       ← classé après traitement
+            2025-10 - octobre 2025/
+            2026-01 - janvier 2026/
+            2026-04 - avril 2026/  …
 ```
-- `EXERCICE_START_MONTH = 7` → l'étiquette d'exercice « AAAA - AAAA+1 » réutilise tes dossiers
-  existants (« 2025 - 2026 »).
-- Préfixe ordinal `01…12` = tri chronologique correct **dans** l'exercice.
-- Les dossiers exercice/mois manquants sont **créés automatiquement**.
+- `EXERCICE_START_MONTH = 7` → l'étiquette d'exercice « AAAA - AAAA+1 » réutilise **tes dossiers
+  existants** (« 2025 - 2026 », « FACTURES », « TRAITEES »).
+- Convention des dossiers mois : **`AAAA-MM - mois AAAA`** (mois calendaire, minuscules sans
+  accent) — identique à l'existant (`2026-04 - avril 2026`).
+- Les dossiers manquants sont **créés automatiquement**.
 
 ### Requête Gmail optimisée (`buildQuery_`)
 ```
@@ -46,12 +45,12 @@ has:attachment filename:(pdf OR jpg OR …) newer_than:30d -label:MAKI-traite
 - Label `MAKI-traite` **sans accent** = recherche Gmail fiable.
 
 Puis **Claude (Max)** lit `INBOX_FACTURES`, ouvre le PDF, complète fournisseur / n° /
-montant HT-TVA-TTC / catégorie, et écrit la ligne propre dans `DÉPENSES`
-(via le Web App « Extraction Factures » existant). Seul **Make disparaît**.
+montant HT-TVA-TTC / catégorie, écrit la ligne dans `DÉPENSES` **et déplace le PDF dans
+`TRAITEES/<mois>`** via l'endpoint `WriteDepense`. Seul **Make disparaît**.
 
 ## Ce que ça corrige (vs l'ancien v3)
-- **C3 / P8** — plus de mapping de mois en dur : le dossier `<exercice>/<NN - Mois AAAA>` est créé
-  dynamiquement depuis la date du message (exercice décalé géré). Fini le bug « mai/juin → avril ».
+- **C3 / P8** — plus de mapping de mois en dur : le mois (`AAAA-MM - mois AAAA`) est calculé
+  dynamiquement depuis la **date de facture**, exercice décalé géré. Fini le bug « mai/juin → avril ».
 - **C5** — fuseau `Europe/Paris` (l'ancien script était en `Africa/Casablanca`).
 - **C1 / P6** — aucune dépendance externe : Make n'est plus dans la boucle.
 - **C2 / P7** — plus de Web App publique `ANYONE_ANONYMOUS` ni de secret en dur pour CE flux

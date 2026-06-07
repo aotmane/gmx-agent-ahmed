@@ -2,20 +2,24 @@
 // MAKI ONE — Ingestion Factures (NATIF, sans Make)   [P6 — Claude Max only]
 // ────────────────────────────────────────────────────────────────────────────
 // Remplace le scénario Make + le « Webhook Factures v3 ».
-// Déclencheur HORAIRE : scanne Gmail, range les PJ dans
-//   /MAKI ONE/<exercice>/<NN - Mois AAAA>/   (exercice décalé juillet→juin),
+// Déclencheur HORAIRE : scanne Gmail et DÉPOSE les PJ dans la boîte de réception
+//   /MAKI ONE/<exercice>/FACTURES/        (= zone "à traiter")
 // puis empile chaque facture dans l'onglet INBOX_FACTURES (file pour Claude).
+//
+// Le classement final dans  …/FACTURES/TRAITEES/<AAAA-MM - mois AAAA>/  se fait
+// à l'étape Claude, d'après la DATE DE FACTURE (pas la date d'email).
 // 100 % Google Apps Script (gratuit), aucune dépendance payante.
 // ════════════════════════════════════════════════════════════════════════════
 
 var CONFIG = {
-  // ── Rangement Drive ─────────────────────────────────────────────────────────
-  MAKI_ONE_FOLDER_ID: '1QuKDG5_kjR7eMxhXGBclgy6fPJWQj8gq', // dossier /MAKI ONE/
-  EXERCICE_START_MONTH: 7,   // exercice décalé : commence en JUILLET (=> 2025-2026 = juil.25→juin.26)
+  // ── Rangement Drive (Mon Drive / MAKI ONE) ──────────────────────────────────
+  MAKI_ONE_FOLDER_ID: '1QuKDG5_kjR7eMxhXGBclgy6fPJWQj8gq', // /MAKI ONE/
+  EXERCICE_START_MONTH: 7,   // exercice décalé : commence en JUILLET (2025-2026 = juil.25→juin.26)
+  FACTURES_SUBFOLDER: 'FACTURES', // boîte "à traiter" sous l'exercice
 
   // ── Gmail ───────────────────────────────────────────────────────────────────
-  PROCESSED_LABEL: 'MAKI-traite', // label posé sur les messages traités (sans accent = recherche fiable)
-  LOOKBACK_DAYS: 30,              // fenêtre de recherche
+  PROCESSED_LABEL: 'MAKI-traite', // label sur les messages traités (sans accent = recherche fiable)
+  LOOKBACK_DAYS: 30,
   MAX_THREADS: 50,
 
   // ── File d'attente (Sheet « SUIVI DES DÉPENSES ») ───────────────────────────
@@ -25,34 +29,27 @@ var CONFIG = {
   VALID_EXT: ['pdf', 'jpg', 'jpeg', 'png', 'xlsx', 'xls'],
   TZ: 'Europe/Paris', // C5 — activité en France (avant: Africa/Casablanca)
 
-  // Référentiel fournisseurs : motif (dans expéditeur/sujet) → nom canonique.
-  // `from` (optionnel) = domaine/email expéditeur, intégré à la requête Gmail pour
-  // attraper les factures même sans mot-clé. À compléter au fil de l'eau.
   SUPPLIERS: [
-    { match: ['oceane', "j'oceane", 'joceane'],            name: "J'OCEANE SAS" },
+    { match: ['oceane', "j'oceane", 'joceane'],              name: "J'OCEANE SAS" },
     { match: ['comptoirs oceaniques', 'comptoir oceanique'], name: 'COMPTOIRS OCEANIQUES' },
-    { match: ['pomona', 'ta provence', 'terre azur'],      name: 'TA Provence Languedoc (Pomona)', from: 'pomona.fr' },
-    { match: ['eat sushi', 'esf', 'eatsushi'],             name: 'SAS ESF - EAT SUSHI', from: 'eatsushi.fr' },
-    { match: ['bulletin', 'paie', 'fiche de paie'],        name: 'BULLETIN PAIE' },
-    { match: ['edf', 'engie', 'total energies'],           name: 'ÉNERGIE' },
-    { match: ['orange', 'sfr', 'free', 'bouygues'],        name: 'TÉLÉCOM' }
+    { match: ['pomona', 'ta provence', 'terre azur', 'terreazur'], name: 'TA Provence Languedoc (Pomona)', from: 'pomona.fr' },
+    { match: ['eat sushi', 'esf', 'eatsushi'],               name: 'SAS ESF - EAT SUSHI', from: 'eatsushi.fr' },
+    { match: ['groupon'],                                    name: 'Groupon France', from: 'groupon.com' },
+    { match: ['snapshift', 'combo'],                         name: 'Combo (Snapshift SAS)' },
+    { match: ['bouygues', 'keyyo'],                          name: 'Bouygues Telecom Pro' },
+    { match: ['bulletin', 'paie', 'fiche de paie'],          name: 'BULLETIN PAIE' }
   ]
 };
 
-// ── Construit la requête Gmail optimisée ──────────────────────────────────────
+// ── Requête Gmail optimisée ───────────────────────────────────────────────────
 function buildQuery_() {
   var ext = 'filename:(' + CONFIG.VALID_EXT.join(' OR ') + ')';
   var kw  = '(facture OR factures OR invoice OR avoir OR "bon de commande" OR '
           + '"bon de livraison" OR bulletin OR paie OR commission)';
-  var froms = CONFIG.SUPPLIERS
-    .filter(function (s) { return s.from; })
-    .map(function (s) { return s.from; });
+  var froms = CONFIG.SUPPLIERS.filter(function (s) { return s.from; }).map(function (s) { return s.from; });
   var senderClause = froms.length ? ' OR from:(' + froms.join(' OR ') + ')' : '';
-
-  return 'has:attachment ' + ext
-       + ' newer_than:' + CONFIG.LOOKBACK_DAYS + 'd'
-       + ' -label:' + CONFIG.PROCESSED_LABEL
-       + ' (' + kw + senderClause + ')';
+  return 'has:attachment ' + ext + ' newer_than:' + CONFIG.LOOKBACK_DAYS + 'd'
+       + ' -label:' + CONFIG.PROCESSED_LABEL + ' (' + kw + senderClause + ')';
 }
 
 // ── Entrée principale (déclencheur horaire) ───────────────────────────────────
@@ -71,11 +68,11 @@ function ingestFactures() {
     if (processed) { thread.addLabel(label); totalThreads++; }
   });
 
-  Logger.log('✅ Ingestion : ' + totalFiles + ' fichier(s) sur ' + totalThreads + ' thread(s).');
+  Logger.log('✅ Ingestion : ' + totalFiles + ' fichier(s) déposé(s) dans FACTURES sur ' + totalThreads + ' thread(s).');
   return { threads: totalThreads, files: totalFiles };
 }
 
-// ── Traite un message : dépose chaque PJ valide + empile dans la file ─────────
+// ── Dépose les PJ valides dans la boîte FACTURES + empile dans la file ────────
 function processMessage_(message) {
   var attachments = message.getAttachments();
   if (!attachments.length) return { filed: 0 };
@@ -83,7 +80,7 @@ function processMessage_(message) {
   var msgDate = message.getDate();
   var fournisseur = guessFournisseur_(message);
   var numFacture = guessNumFacture_(message);
-  var folder = targetFolder_(msgDate);   // /MAKI ONE/<exercice>/<NN - Mois AAAA>/
+  var inbox = facturesInbox_(msgDate);   // /MAKI ONE/<exercice>/FACTURES  (zone à traiter)
   var filed = 0;
 
   for (var i = 0; i < attachments.length; i++) {
@@ -94,47 +91,35 @@ function processMessage_(message) {
     var dateFr = Utilities.formatDate(msgDate, CONFIG.TZ, 'dd-MM-yyyy');
     var nom = fournisseur + ' - ' + dateFr + ' - Facture n° ' + numFacture + '.' + ext;
 
-    if (folder.getFilesByName(nom).hasNext()) continue; // dédoublonnage
+    if (inbox.getFilesByName(nom).hasNext()) continue; // dédoublonnage dans la boîte
 
-    var file = folder.createFile(att.copyBlob()).setName(nom);
+    var file = inbox.createFile(att.copyBlob()).setName(nom);
     appendToQueue_({
-      messageId: message.getId(), from: message.getFrom(),
-      subject: message.getSubject(), fournisseur: fournisseur,
-      dateEmail: dateFr, exercice: exerciceLabel_(msgDate),
-      fichier: nom, url: file.getUrl()
+      messageId: message.getId(), from: message.getFrom(), subject: message.getSubject(),
+      fournisseur: fournisseur, dateEmail: dateFr, exercice: exerciceLabel_(msgDate),
+      fichier: nom, fileId: file.getId(), url: file.getUrl()
     });
     filed++;
-    Logger.log('✅ ' + nom + ' → ' + folder.getName());
+    Logger.log('✅ ' + nom + ' → FACTURES (' + exerciceLabel_(msgDate) + ')');
   }
   return { filed: filed };
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-//  RANGEMENT — exercice décalé juillet→juin
+//  RANGEMENT — /MAKI ONE/<exercice>/FACTURES   (exercice décalé juillet→juin)
 // ════════════════════════════════════════════════════════════════════════════
 
-// /MAKI ONE/<exercice>/<NN - Mois AAAA>/
-function targetFolder_(date) {
+function facturesInbox_(date) {
   var maki = DriveApp.getFolderById(CONFIG.MAKI_ONE_FOLDER_ID);
-  var exo  = ensureChild_(maki, exerciceLabel_(date));
-  return ensureChild_(exo, monthFolderName_(date));
+  var exo  = ensureChild_(maki, exerciceLabel_(date));     // "2025 - 2026"
+  return ensureChild_(exo, CONFIG.FACTURES_SUBFOLDER);     // "FACTURES"
 }
 
 // "2025 - 2026" pour un mois entre juillet 2025 et juin 2026 (format des dossiers existants).
 function exerciceLabel_(date) {
-  var y = date.getFullYear();
-  var m = date.getMonth() + 1;
+  var y = date.getFullYear(), m = date.getMonth() + 1;
   var start = (m >= CONFIG.EXERCICE_START_MONTH) ? y : y - 1;
   return start + ' - ' + (start + 1);
-}
-
-// "01 - Juillet 2025" … "12 - Juin 2026" : préfixe ordinal => tri chronologique dans l'exercice.
-function monthFolderName_(date) {
-  var m = date.getMonth() + 1;
-  var ord = ((m - CONFIG.EXERCICE_START_MONTH + 12) % 12) + 1;
-  var noms = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-              'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-  return (ord < 10 ? '0' : '') + ord + ' - ' + noms[m - 1] + ' ' + date.getFullYear();
 }
 
 function ensureChild_(parent, name) {
@@ -142,24 +127,17 @@ function ensureChild_(parent, name) {
   return it.hasNext() ? it.next() : parent.createFolder(name);
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-//  EXTRACTION best effort (le reste = Claude depuis le contenu du PDF)
-// ════════════════════════════════════════════════════════════════════════════
-
+// ── Extraction best effort (le reste = Claude depuis le contenu du PDF) ────────
 function guessFournisseur_(message) {
   var hay = ((message.getFrom() || '') + ' ' + (message.getSubject() || '')).toLowerCase();
   for (var i = 0; i < CONFIG.SUPPLIERS.length; i++) {
     var s = CONFIG.SUPPLIERS[i];
-    for (var j = 0; j < s.match.length; j++) {
-      if (hay.indexOf(s.match[j]) !== -1) return s.name;
-    }
+    for (var j = 0; j < s.match.length; j++) if (hay.indexOf(s.match[j]) !== -1) return s.name;
   }
   return 'À-IDENTIFIER';
 }
-
 function guessNumFacture_(message) {
-  var subject = message.getSubject() || '';
-  var m = subject.match(/(?:facture|invoice|n°|no|num|fac)[\s:°#-]*([A-Z0-9][A-Z0-9\-\/]{3,})/i);
+  var m = (message.getSubject() || '').match(/(?:facture|invoice|n°|no|num|fac)[\s:°#-]*([A-Z0-9][A-Z0-9\-\/]{3,})/i);
   return m ? m[1].replace(/\//g, '-') : 'À-COMPLÉTER';
 }
 
@@ -170,17 +148,15 @@ function appendToQueue_(row) {
   if (!sheet) {
     sheet = ss.insertSheet(CONFIG.QUEUE_TAB);
     sheet.appendRow(['Horodatage', 'messageId', 'Expéditeur', 'Sujet', 'Fournisseur_devine',
-                     'Date_email', 'Exercice', 'Fichier', 'Drive_URL', 'Statut']);
+                     'Date_email', 'Exercice', 'Fichier', 'fileId', 'Drive_URL', 'Statut']);
   }
   sheet.appendRow([new Date(), row.messageId, row.from, row.subject, row.fournisseur,
-                   row.dateEmail, row.exercice, row.fichier, row.url, 'À_TRAITER']);
+                   row.dateEmail, row.exercice, row.fichier, row.fileId, row.url, 'À_TRAITER']);
 }
 
-function ensureLabel_(name) {
-  return GmailApp.getUserLabelByName(name) || GmailApp.createLabel(name);
-}
+function ensureLabel_(name) { return GmailApp.getUserLabelByName(name) || GmailApp.createLabel(name); }
 
-// ── Installation / désinstallation du déclencheur (à lancer UNE fois) ─────────
+// ── Installation / désinstallation du déclencheur ─────────────────────────────
 function installTrigger() {
   removeTrigger();
   ScriptApp.newTrigger('ingestFactures').timeBased().everyHours(1).create();
@@ -201,7 +177,7 @@ function dryRun() {
   threads.forEach(function (t) {
     var m = t.getMessages()[0];
     Logger.log(' • ' + Utilities.formatDate(m.getDate(), CONFIG.TZ, 'dd-MM-yyyy')
-             + ' | ' + exerciceLabel_(m.getDate()) + ' / ' + monthFolderName_(m.getDate())
+             + ' | exercice ' + exerciceLabel_(m.getDate())
              + ' | ' + guessFournisseur_(m) + ' | ' + m.getSubject());
   });
 }

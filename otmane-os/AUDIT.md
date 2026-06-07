@@ -54,6 +54,9 @@ Google Sheets
   + restreindre l'accès.
 - **C3 — Bug mapping mois.** Dans `DOSSIERS_MOIS`, **mai (5) et juin (6) pointent vers le dossier
   AVRIL temporaire** → factures classées au mauvais endroit. À corriger (créer les dossiers mai/juin).
+  → **Arborescence réelle** (Mon Drive) : `MAKI ONE/2025 - 2026/FACTURES/` (boîte à traiter) puis
+  `FACTURES/TRAITEES/<AAAA-MM - mois AAAA>/` (classé). C'est cette convention que les nouveaux
+  scripts respectent (mois calculé sur la **date de facture**).
 - **C4 — Redondance.** 3 Web Apps avec une logique « PJ Gmail → Drive » qui se chevauche
   (`Gmail PDF → Drive` vs `Webhook v3`). À consolider en **un seul** point d'entrée.
 - **C5 — Fuseau horaire** des scripts = `Africa/Casablanca` alors que l'activité est en France
