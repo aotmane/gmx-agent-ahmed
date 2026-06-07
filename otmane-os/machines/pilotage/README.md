@@ -56,15 +56,21 @@ Sources de données du cockpit, par **ordre de priorité** :
 
 ### Mise en place (par API)
 1. **Secret** → Paramètres du projet ▸ Propriétés du script :
-   `APITIC_TOKEN` et `COMBO_TOKEN` (jamais en dur / git).
+   `APITIC_TOKEN`, `COMBO_TOKEN`, et `COMBO_LOCATION_ID` (UUID de l'établissement).
+   (jamais en dur / git).
 2. **Calibrage** → lancer `apiticDryRun()` / `comboDryRun()` : ça affiche la **réponse JSON brute**.
    On ajuste alors dans la config (`APITIC` / `COMBO`) : `BASE`, le(s) endpoint(s) `EP_*`,
    le format d'`AUTH_*`, et les noms de champs `F_*`.
 3. **Activer** → `installApiticTrigger()` / `installComboTrigger()` (pull quotidien).
 
-> ⚠️ Les `BASE`/`EP_*`/`F_*` actuels sont des **placeholders** (les portails Apitic/Combo ne sont
-> pas publics). Il me faut, pour finaliser : l'**URL de base + méthode d'auth** de chaque API et
-> **un exemple de réponse** (ou le retour de `*DryRun()`).
+**Combo — confirmé** : `BASE = https://partner.combohr.com`, endpoint plannings
+`/api/v1/plannings?start_date=AAAA-MM-JJ&location_id=<UUID>`, Swagger sur
+`https://partner.combohr.com/swagger`. Restent à confirmer via `comboDryRun()` : l'en-tête d'auth
+exact, les champs de réponse (heures prévues/pointées, coût) et l'endpoint des **heures pointées**.
+
+> ⚠️ Apitic : portail non public → `BASE`/`EP_*`/`F_*` encore en placeholders, à caler de même.
+> Il me faut, pour finaliser : l'URL de base + auth Apitic et **un retour de `*DryRun()`** (ou un
+> exemple de réponse) pour Apitic et Combo.
 
 ## Déploiement
 1. Nouveau projet Apps Script → 2 fichiers : `Code.gs` + `Index.html` (HTML).
