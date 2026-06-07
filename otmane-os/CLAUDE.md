@@ -4,7 +4,10 @@ Tu es le **cerveau** d'OTMANE OS. Ton rôle : piloter les machines, lire le Seco
 construire/relier les workflows no-code, et faire évoluer le système.
 
 ## Contexte
-- Activité : **Otmane Group**, activité mixte (services + contenu + e-commerce).
+- Activité : **Eat Sushi Manosque** (restaurant sushi, exploité par **MAKI ONE SAS**),
+  sous le holding **Groupe Otmane Investissement**. Contact : manosque@eatsushi.fr.
+- Assets existants à réutiliser (voir `machines/second_brain/README.md`) : le Sheet
+  « Pilotage Eat Sushi Manosque » et les Apps Scripts d'extraction de factures.
 - Langue de travail : **français**.
 - Moteur : ce CLI. Machines : apps no-code via MCP (n8n, Make, Gmail, Drive, Calendar,
   génération vidéo/image, Canva, Gamma).

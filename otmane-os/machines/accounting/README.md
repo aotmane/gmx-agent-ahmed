@@ -19,8 +19,15 @@ Emails + Drive (factures PDF)  →  extraction (OCR)  →  catégorisation des d
 4. **TVA** — agrégation par taux (`VAT_RATE`), préparation déclaration.
 5. **Livraison** — dossier mensuel + récap (Google Sheet) envoyé automatiquement au comptable.
 
+## ⚠️ Existant à réutiliser (Eat Sushi Manosque)
+Un pipeline factures tourne DÉJÀ en Google Apps Script — ne pas le recréer, l'orchestrer :
+- `MAKI ONE — Gmail PDF → Drive FACTURES` (collecte)
+- `MAKI ONE — Extraction Factures` (extraction)
+- `Webhook Factures MAKI ONE`
+- Les montants alimentent l'onglet **Factures fournisseurs** du Sheet « Pilotage Eat Sushi Manosque ».
+
 ## Outils MCP
-Gmail (collecte/envoi) · Google Drive (rangement) · n8n (orchestration + data table) ·
+Gmail (collecte/envoi) · Google Drive (rangement) · Apps Script existant · n8n (orchestration) ·
 Calendar (échéances fiscales).
 
 ## À définir avec toi

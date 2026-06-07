@@ -1,7 +1,8 @@
 # OTMANE OS
 
 Un « OS » personnel d'automatisation piloté par l'IA, inspiré de l'architecture **AFFISEO OS**
-mais adapté à l'activité d'**Otmane Group** (services / activité mixte).
+mais adapté à l'activité réelle : **Eat Sushi Manosque** (restaurant, exploité par **MAKI ONE SAS**),
+sous le holding **Groupe Otmane Investissement**.
 
 > **Moteur (cerveau) :** Claude Code CLI — orchestre, génère et fait évoluer les machines.
 > **Machines (exécution) :** apps no-code connectées en MCP (n8n / Make, Gmail, Google Drive,
