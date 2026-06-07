@@ -55,22 +55,26 @@ Sources de données du cockpit, par **ordre de priorité** :
 | Food cost | Achats `Matières premières + Boissons` des DÉPENSES | — | — |
 
 ### Mise en place (par API)
-1. **Secret** → Paramètres du projet ▸ Propriétés du script :
-   `APITIC_TOKEN`, `COMBO_TOKEN`, et `COMBO_LOCATION_ID` (UUID de l'établissement).
-   (jamais en dur / git).
-2. **Calibrage** → lancer `apiticDryRun()` / `comboDryRun()` : ça affiche la **réponse JSON brute**.
-   On ajuste alors dans la config (`APITIC` / `COMBO`) : `BASE`, le(s) endpoint(s) `EP_*`,
-   le format d'`AUTH_*`, et les noms de champs `F_*`.
-3. **Activer** → `installApiticTrigger()` / `installComboTrigger()` (pull quotidien).
+1. **Secrets** → Paramètres du projet ▸ Propriétés du script (jamais en dur / git) :
+   - **Combo** : `COMBO_TOKEN` + `COMBO_LOCATION_ID` (lance `comboListLocations()` pour le trouver).
+   - **Apitic** : `APITIC_EMAIL` + `APITIC_PASSWORD` (login → token, mis en cache).
+2. **Calibrage** :
+   - Combo : `comboDryRun()` affiche 3 shifts → vérifier les champs ; ajuster `CHARGE_MULTIPLIER`
+     (coeff. charges patronales, ex. 1.42) et `BREAK_UNIT_MINUTES` si besoin.
+   - Apitic : `apiticAuthTest_()` valide le login + montre le champ du token, puis (EP_SALES connu)
+     `apiticDryRun()` pour caler les `F_*`.
+3. **Activer** → `installComboTrigger()` / `installApiticTrigger()` (pull quotidien).
 
-**Combo — confirmé** : `BASE = https://partner.combohr.com`, endpoint plannings
-`/api/v1/plannings?start_date=AAAA-MM-JJ&location_id=<UUID>`, Swagger sur
-`https://partner.combohr.com/swagger`. Restent à confirmer via `comboDryRun()` : l'en-tête d'auth
-exact, les champs de réponse (heures prévues/pointées, coût) et l'endpoint des **heures pointées**.
+**Combo — confirmé (Swagger)** : `GET /api/v1/plannings?start_date=&end_date=&location_id=` renvoie
+le **prévu** (`starts_at/ends_at/break_duration`) **et le réalisé** (`real_*`) par shift ; le taux
+horaire vient de `GET /api/v1/contracts` (`hourly_gross_rate`) ; `GET /api/v1/locations` liste les
+`location_id`. → heures planifiées/pointées calculées depuis les horodatages, masse salariale =
+heures × taux × charges. Reste à confirmer : le **schéma d'auth exact** (bouton « Autoriser » du
+Swagger) et l'unité de `break_duration`.
 
-> ⚠️ Apitic : portail non public → `BASE`/`EP_*`/`F_*` encore en placeholders, à caler de même.
-> Il me faut, pour finaliser : l'URL de base + auth Apitic et **un retour de `*DryRun()`** (ou un
-> exemple de réponse) pour Apitic et Combo.
+**Apitic — confirmé** : `POST https://bi-data-api.web-caisse.com/api/v1/token {email,password}` →
+token Bearer. Reste à confirmer via `apiticDryRun()` : l'**endpoint des ventes** (`EP_SALES`) et les
+noms de champs `F_*` (CA HT/TTC, couverts, tickets, ventilation).
 
 ## Déploiement
 1. Nouveau projet Apps Script → 2 fichiers : `Code.gs` + `Index.html` (HTML).

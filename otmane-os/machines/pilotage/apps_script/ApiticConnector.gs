@@ -1,19 +1,19 @@
 // ════════════════════════════════════════════════════════════════════════════
-// MAKI ONE — Connecteur Apitic (caisse) → table CA_APITIC (journalier)
+// MAKI ONE — Connecteur Apitic / web-caisse (BI data API) → table CA_APITIC
 // ────────────────────────────────────────────────────────────────────────────
-// Tire de l'API Apitic le CA quotidien ventilé + couverts + tickets → upsert par
-// jour dans CA_APITIC (Sheet Pilotage). Le cockpit lit cette table en priorité
-// (repli : feuille de caisse mensuelle CA_CAISSE, puis saisie manuelle).
+// Auth : POST /api/v1/token { email, password } → token Bearer (mis en cache).
+// Puis pull du CA quotidien ventilé + couverts + tickets → CA_APITIC (par jour).
+// Le cockpit lit CA_APITIC en priorité (repli : caisse CSV puis saisie manuelle).
 //
-// 🔐 Secret en Script Property :  APITIC_TOKEN = <ta clé API Apitic>
-// ⚙️  base URL / chemins / noms de champs = à CONFIRMER via apiticDryRun() (cf. README).
+// 🔐 Script Properties :  APITIC_EMAIL  +  APITIC_PASSWORD
+// ⚙️  Confirmé : token endpoint. À caler via apiticAuthTest_() puis apiticDryRun() :
+//    le champ du token dans la réponse, l'endpoint des ventes (EP_SALES) et les F_*.
 // ════════════════════════════════════════════════════════════════════════════
 
 var APITIC = {
-  BASE: 'https://api.apitic.com',               // À CONFIRMER (accès partenaire Apitic)
-  AUTH_HEADER: 'Authorization',
-  AUTH_PREFIX: 'Bearer ',
-  EP_SALES: '/v1/sales',                        // ventes/CA par jour   (À CONFIRMER)
+  BASE: 'https://bi-data-api.web-caisse.com/api/v1',
+  TOKEN_PATH: '/token',                         // ✅ POST { email, password }
+  EP_SALES: '/sales',                           // ventes/CA par jour — À CONFIRMER (Swagger bi-data-api)
 
   // Noms de champs JSON — à ajuster après apiticDryRun().
   F_DATE: 'date',
@@ -30,13 +30,33 @@ var APITIC = {
 var CA_APITIC_HEADERS = ['Date', 'CA_HT', 'CA_TTC', 'couverts', 'tickets',
   'CA_sur_place', 'CA_emporter', 'CA_livraison', 'CA_agregateurs', 'MAJ'];
 
-// ── HTTP ──────────────────────────────────────────────────────────────────────
+// ── Auth (login → token, mis en cache 50 min) ─────────────────────────────────
+function apiticToken_() {
+  var cache = CacheService.getScriptCache();
+  var cached = cache.get('apitic_token');
+  if (cached) return cached;
+
+  var props = PropertiesService.getScriptProperties();
+  var email = props.getProperty('APITIC_EMAIL'), pwd = props.getProperty('APITIC_PASSWORD');
+  if (!email || !pwd) throw new Error('APITIC_EMAIL / APITIC_PASSWORD manquants (Propriétés du script).');
+
+  var res = UrlFetchApp.fetch(APITIC.BASE + APITIC.TOKEN_PATH, {
+    method: 'post', contentType: 'application/json',
+    payload: JSON.stringify({ email: email, password: pwd }), muteHttpExceptions: true
+  });
+  if (res.getResponseCode() >= 300) throw new Error('Apitic /token HTTP ' + res.getResponseCode() + ' : ' + res.getContentText().slice(0, 200));
+  var b = JSON.parse(res.getContentText());
+  var token = b.token || b.access_token || b.jwt || (b.data && (b.data.token || b.data.access_token));
+  if (!token) throw new Error('Token introuvable dans la réponse /token : ' + res.getContentText().slice(0, 200));
+  cache.put('apitic_token', token, 3000);
+  return token;
+}
+
 function apiticFetch_(path, params) {
-  var token = PropertiesService.getScriptProperties().getProperty('APITIC_TOKEN');
-  if (!token) throw new Error('APITIC_TOKEN manquant (Propriétés du script).');
   var url = APITIC.BASE + path + (params ? '?' + apQuery_(params) : '');
-  var headers = {}; headers[APITIC.AUTH_HEADER] = APITIC.AUTH_PREFIX + token;
-  var res = UrlFetchApp.fetch(url, { method: 'get', headers: headers, muteHttpExceptions: true });
+  var res = UrlFetchApp.fetch(url, {
+    method: 'get', headers: { Authorization: 'Bearer ' + apiticToken_() }, muteHttpExceptions: true
+  });
   var code = res.getResponseCode();
   if (code < 200 || code >= 300) throw new Error('Apitic HTTP ' + code + ' : ' + res.getContentText().slice(0, 300));
   return JSON.parse(res.getContentText());
@@ -80,13 +100,23 @@ function upsertApitic_(r) {
   if (at) sheet.getRange(at, 1, 1, row.length).setValues([row]); else sheet.appendRow(row);
 }
 
-// ── Calibrage / planif ────────────────────────────────────────────────────────
+// ── Calibrage ─────────────────────────────────────────────────────────────────
+// 1) Vérifie le login + montre la forme de la réponse /token (nom du champ token).
+function apiticAuthTest_() {
+  var props = PropertiesService.getScriptProperties();
+  var res = UrlFetchApp.fetch(APITIC.BASE + APITIC.TOKEN_PATH, {
+    method: 'post', contentType: 'application/json',
+    payload: JSON.stringify({ email: props.getProperty('APITIC_EMAIL'), password: props.getProperty('APITIC_PASSWORD') }),
+    muteHttpExceptions: true
+  });
+  Logger.log('HTTP ' + res.getResponseCode() + ' : ' + res.getContentText().slice(0, 600));
+}
+// 2) Une fois EP_SALES connu : montre la réponse brute pour caler les F_*.
 function apiticDryRun() {
   var ym = Utilities.formatDate(new Date(), APITIC.TZ, 'yyyy-MM');
-  var data = apiticFetch_(APITIC.EP_SALES, { from: ym + '-01', to: ym + '-31' });
-  Logger.log(JSON.stringify(data, null, 2).slice(0, 3000));
+  Logger.log(JSON.stringify(apiticFetch_(APITIC.EP_SALES, { from: ym + '-01', to: ym + '-31' }), null, 2).slice(0, 3000));
 }
-function installApiticTrigger() {                // 1×/jour
+function installApiticTrigger() {
   ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'pullApitic') ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('pullApitic').timeBased().everyDays(1).atHour(6).create();
 }
@@ -98,7 +128,7 @@ function apNum_(v) { var x = parseFloat(String(v == null ? '' : v).replace(',', 
 function apDate_(v) {
   if (v instanceof Date) return Utilities.formatDate(v, APITIC.TZ, 'dd/MM/yyyy');
   var s = String(v || '');
-  var iso = s.match(/(\d{4})-(\d{2})-(\d{2})/);            // 2026-04-12 → 12/04/2026
+  var iso = s.match(/(\d{4})-(\d{2})-(\d{2})/);
   if (iso) return iso[3] + '/' + iso[2] + '/' + iso[1];
   var fr = s.match(/(\d{2})\/(\d{2})\/(\d{4})/);
   return fr ? fr[0] : '';

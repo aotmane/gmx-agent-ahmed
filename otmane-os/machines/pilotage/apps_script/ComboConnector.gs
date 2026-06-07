@@ -1,29 +1,27 @@
 // ════════════════════════════════════════════════════════════════════════════
-// MAKI ONE — Connecteur Combo (RH/planning) → table RH_COMBO
+// MAKI ONE — Connecteur Combo (API partenaire ComboHR) → table RH_COMBO
 // ────────────────────────────────────────────────────────────────────────────
-// Tire de l'API Combo : heures planifiées, heures pointées (réalisées) et masse
-// salariale du mois → upsert dans RH_COMBO (Sheet Pilotage). Le cockpit lit cette
-// table pour le labor cost et l'écart d'heures (repli : catégorie Salaires des DÉPENSES).
+// Source : GET /api/v1/plannings (un shift porte le PRÉVU starts_at/ends_at/break
+// ET le RÉALISÉ real_starts_at/real_ends_at/real_break). Le taux horaire vient de
+// /api/v1/contracts (hourly_gross_rate). On agrège par mois → RH_COMBO.
 //
-// 🔐 Script Properties (jamais en dur / git) :
-//     COMBO_TOKEN        = <ta clé API Combo>
-//     COMBO_LOCATION_ID  = <UUID de ton établissement>   (ex. dans ton appel : 11d0f8c4-…59df)
-// ⚙️  Confirmé : base + endpoint plannings + params. À caler via comboDryRun() :
-//     l'en-tête d'auth exact, les noms de champs (F_*) et l'endpoint des heures pointées.
+// 🔐 Script Properties :  COMBO_TOKEN  +  COMBO_LOCATION_ID
+//    (liste tes location_id via comboListLocations())
+// ⚙️  Auth : confirme le schéma via le bouton « Autoriser » du Swagger ; par défaut
+//    Authorization: Bearer <token>.
 // ════════════════════════════════════════════════════════════════════════════
 
 var COMBO = {
-  BASE: 'https://partner.combohr.com',          // ✅ confirmé
+  BASE: 'https://partner.combohr.com',
   AUTH_HEADER: 'Authorization',
-  AUTH_PREFIX: 'Bearer ',                        // en-tête « tel que communiqué » — à confirmer
-  EP_PLANNINGS: '/api/v1/plannings',            // ✅ heures PRÉVUES (start_date + location_id)
-  EP_TIMECLOCK: '',                             // heures POINTÉES — endpoint à confirmer (Swagger)
+  AUTH_PREFIX: 'Bearer ',                 // à confirmer (schéma « Autoriser » du Swagger)
+  EP_PLANNINGS: '/api/v1/plannings',
+  EP_CONTRACTS: '/api/v1/contracts',
+  EP_LOCATIONS: '/api/v1/locations',
 
-  // Noms de champs dans la réponse JSON — à ajuster après comboDryRun().
-  F_DATE: 'date',
-  F_PLANNED_HOURS: 'planned_hours',
-  F_WORKED_HOURS: 'worked_hours',
-  F_COST: 'cost',                               // coût chargé de la ligne (si fourni)
+  RATE_FIELD: 'hourly_gross_rate',        // taux horaire brut (sinon hourly_gross_salary)
+  BREAK_UNIT_MINUTES: true,               // break_duration en minutes (sinon secondes)
+  CHARGE_MULTIPLIER: 1.0,                 // ×coeff. charges patronales (ex. 1.42) pour le coût employeur
 
   PILOTAGE_SS_ID: '16LNpH29uvMFQQDE3WFBEgK_oyqi1YvoM2G6DsAh_Y7A',
   RH_TAB: 'RH_COMBO',
@@ -43,32 +41,47 @@ function comboFetch_(path, params) {
   if (code < 200 || code >= 300) throw new Error('Combo HTTP ' + code + ' : ' + res.getContentText().slice(0, 300));
   return JSON.parse(res.getContentText());
 }
-
 function comboLocation_() {
   var loc = PropertiesService.getScriptProperties().getProperty('COMBO_LOCATION_ID');
   if (!loc) throw new Error('COMBO_LOCATION_ID manquant (Propriétés du script).');
   return loc;
 }
 
-// ── Pull mensuel → RH_COMBO (itère les semaines du mois) ──────────────────────
+// ── Pull mensuel → RH_COMBO ───────────────────────────────────────────────────
 function pullCombo(yyyymm) {
   var ym = yyyymm || Utilities.formatDate(new Date(), COMBO.TZ, 'yyyy-MM');
   var loc = comboLocation_();
-  var hPlan = 0, hPoint = 0, masse = 0;
+  var start = ym + '-01', end = monthEnd_(ym);
 
-  weekStarts_(ym).forEach(function (start) {
-    var rows = cArray_(comboFetch_(COMBO.EP_PLANNINGS, { start_date: start, location_id: loc }));
-    rows.forEach(function (s) {
-      if (COMBO.F_DATE && ymOfDate_(s[COMBO.F_DATE]) !== ym) return; // garde le mois ciblé
-      hPlan += cNum_(s[COMBO.F_PLANNED_HOURS]);
-      hPoint += cNum_(s[COMBO.F_WORKED_HOURS]);
-      masse += cNum_(s[COMBO.F_COST]);
-    });
+  var shifts = cArray_(comboFetch_(COMBO.EP_PLANNINGS, { start_date: start, end_date: end, location_id: loc }));
+  var rates = contractRates_(loc, start);
+
+  var hPlan = 0, hPoint = 0, masse = 0;
+  shifts.forEach(function (s) {
+    var planned = Math.max(0, hrs_(s.starts_at, s.ends_at) - brk_(s.break_duration));
+    var worked  = (s.real_starts_at && s.real_ends_at)
+      ? Math.max(0, hrs_(s.real_starts_at, s.real_ends_at) - brk_(s.real_break_duration)) : 0;
+    hPlan += planned; hPoint += worked;
+    var basis = worked > 0 ? worked : planned;        // réalisé si pointé, sinon prévu
+    masse += basis * (rates[s.contract_id] || 0) * COMBO.CHARGE_MULTIPLIER;
   });
 
   upsertRh_({ mois: ym, hplan: cRound_(hPlan), hpoint: cRound_(hPoint), masse: cRound_(masse) });
-  Logger.log('✅ Combo ' + ym + ' : planif ' + hPlan + ' h · pointé ' + hPoint + ' h · masse ' + masse + ' €');
+  Logger.log('✅ Combo ' + ym + ' : planif ' + cRound_(hPlan) + ' h · pointé ' + cRound_(hPoint)
+    + ' h · masse ' + cRound_(masse) + ' € (' + shifts.length + ' shifts)');
   return { mois: ym, heures_planifiees: hPlan, heures_pointees: hPoint, masse_salariale: masse };
+}
+
+// contract_id → taux horaire (depuis /contracts actifs au jour donné)
+function contractRates_(loc, day) {
+  var rows = cArray_(comboFetch_(COMBO.EP_CONTRACTS, { location_id: loc, day: day }));
+  var map = {};
+  rows.forEach(function (c) {
+    var rate = cNum_(c[COMBO.RATE_FIELD]) || cNum_(c.hourly_gross_salary);
+    if (c.id) map[c.id] = rate;
+    if (c.original_contract_id) map[c.original_contract_id] = rate; // fallback
+  });
+  return map;
 }
 
 function upsertRh_(r) {
@@ -88,35 +101,26 @@ function upsertRh_(r) {
   if (at) sheet.getRange(at, 1, 1, row.length).setValues([row]); else sheet.appendRow(row);
 }
 
-// ── Calibrage / planif ────────────────────────────────────────────────────────
-// Affiche la réponse brute des plannings pour caler les champs (F_*) + l'endpoint pointages.
-function comboDryRun() {
-  var start = weekStarts_(Utilities.formatDate(new Date(), COMBO.TZ, 'yyyy-MM'))[0];
-  var data = comboFetch_(COMBO.EP_PLANNINGS, { start_date: start, location_id: comboLocation_() });
-  Logger.log(JSON.stringify(data, null, 2).slice(0, 4000));
+// ── Outils ────────────────────────────────────────────────────────────────────
+function comboListLocations() {                  // pour trouver ton location_id
+  cArray_(comboFetch_(COMBO.EP_LOCATIONS, null)).forEach(function (l) {
+    Logger.log(l.id + '  ·  ' + l.name + '  (équipes: ' + (l.teams || []).map(function (t) { return t.name; }).join(', ') + ')');
+  });
 }
-function installComboTrigger() {                 // 1×/jour
+function comboDryRun() {
+  var ym = Utilities.formatDate(new Date(), COMBO.TZ, 'yyyy-MM');
+  var data = comboFetch_(COMBO.EP_PLANNINGS, { start_date: ym + '-01', end_date: monthEnd_(ym), location_id: comboLocation_() });
+  Logger.log(JSON.stringify(cArray_(data).slice(0, 3), null, 2));
+}
+function installComboTrigger() {
   ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'pullCombo') ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('pullCombo').timeBased().everyDays(1).atHour(6).create();
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-// Dates de début de semaine (tous les 7 jours) couvrant le mois ym ("2026-04").
-function weekStarts_(ym) {
-  var y = Number(ym.split('-')[0]), m = Number(ym.split('-')[1]);
-  var d = new Date(y, m - 1, 1), end = new Date(y, m, 0);
-  var out = [];
-  while (d <= end) {
-    out.push(Utilities.formatDate(d, COMBO.TZ, 'yyyy-MM-dd'));
-    d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7);
-  }
-  return out;
-}
-function ymOfDate_(v) {
-  if (v instanceof Date) return Utilities.formatDate(v, COMBO.TZ, 'yyyy-MM');
-  var m = String(v || '').match(/(\d{4})-(\d{2})/);
-  return m ? m[1] + '-' + m[2] : '';
-}
+function hrs_(a, b) { if (!a || !b) return 0; var t = (new Date(b) - new Date(a)) / 3600000; return t > 0 ? t : 0; }
+function brk_(x) { var m = cNum_(x); return COMBO.BREAK_UNIT_MINUTES ? m / 60 : m / 3600; }
+function monthEnd_(ym) { var y = Number(ym.split('-')[0]), m = Number(ym.split('-')[1]); var d = new Date(y, m, 0); return Utilities.formatDate(d, COMBO.TZ, 'yyyy-MM-dd'); }
 function cArray_(d) { return Array.isArray(d) ? d : (d && d.data && Array.isArray(d.data) ? d.data : (d && d.results) || []); }
 function cQuery_(o) { return Object.keys(o).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(o[k]); }).join('&'); }
 function cNum_(v) { var x = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isNaN(x) ? 0 : x; }
