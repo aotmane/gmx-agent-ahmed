@@ -57,7 +57,8 @@ Sources de données du cockpit, par **ordre de priorité** :
 ### Mise en place (par API)
 1. **Secrets** → Paramètres du projet ▸ Propriétés du script (jamais en dur / git) :
    - **Combo** : `COMBO_TOKEN` + `COMBO_LOCATION_ID` (lance `comboListLocations()` pour le trouver).
-   - **Apitic** : `APITIC_EMAIL` + `APITIC_PASSWORD` (login → token, mis en cache).
+   - **Apitic** : `APITIC_EMAIL` + `APITIC_PASSWORD` + `APITIC_ACCOUNT_ID`
+     (lance `apiticListAccounts()` pour le trouver).
 2. **Calibrage** :
    - Combo : `comboDryRun()` affiche 3 shifts → vérifier les champs ; ajuster `CHARGE_MULTIPLIER`
      (coeff. charges patronales, ex. 1.42) et `BREAK_UNIT_MINUTES` si besoin.
@@ -72,9 +73,12 @@ horaire vient de `GET /api/v1/contracts` (`hourly_gross_rate`) ; `GET /api/v1/lo
 heures × taux × charges. Reste à confirmer : le **schéma d'auth exact** (bouton « Autoriser » du
 Swagger) et l'unité de `break_duration`.
 
-**Apitic — confirmé** : `POST https://bi-data-api.web-caisse.com/api/v1/token {email,password}` →
-token Bearer. Reste à confirmer via `apiticDryRun()` : l'**endpoint des ventes** (`EP_SALES`) et les
-noms de champs `F_*` (CA HT/TTC, couverts, tickets, ventilation).
+**Apitic — confirmé (Swagger)** : `POST /token {email,password}` → `{access_token}` (Bearer) ;
+`GET /accounts` → `APITIC_ACCOUNT_ID` ; `GET /accounts/{id}/sales/{date}` = **une entrée par
+ticket** (`guests_number`, `sale_type`, `platform`, `lines[].excl_tax_price`/`ati_price`). Le
+connecteur agrège par jour : CA HT/TTC, couverts, tickets, ventilation (sur place / emporter /
+livraison / agrégateurs). ⏰ **Fenêtres API interdites** (CET) : 05–06h, 11h30–14h30, 18h30–22h30,
+**10 req/s** → pull planifié à **03h** (`pullApiticYesterday`). Backfill d'un mois : `pullApitic('2026-04')`.
 
 ## Déploiement
 1. Nouveau projet Apps Script → 2 fichiers : `Code.gs` + `Index.html` (HTML).
