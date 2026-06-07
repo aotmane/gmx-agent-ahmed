@@ -88,20 +88,25 @@ function findDateRow_(sheet, date) {
 function getCockpit(yyyymm) {
   var ym = yyyymm || Utilities.formatDate(new Date(), CFG.TZ, 'yyyy-MM');
 
-  // CA du mois : priorité à la caisse (CA_CAISSE, automatisé) ; couverts/heures = saisie.
-  var ca = 0, couverts = 0, hPlan = 0, hPoint = 0, jours = 0, agregateurs = 0, sourceCa = 'saisie';
+  // Sources CA (priorité) : Apitic (jour) > feuille de caisse (mois) > saisie manuelle.
+  var ca = 0, couverts = 0, tickets = 0, hPlan = 0, hPoint = 0, jours = 0;
+  var agregateurs = 0, sourceCa = 'saisie', sourceLabor = 'depenses';
   var sheet = ensureSaisie_();
   var last = sheet.getLastRow();
   if (last > 1) {
     var rows = sheet.getRange(2, 1, last - 1, SAISIE_HEADERS.length).getValues();
     rows.forEach(function (rr) {
       if (ymOf_(rr[0]) === ym) {
-        ca += n_(rr[1]); couverts += n_(rr[6]); hPlan += n_(rr[10]); hPoint += n_(rr[11]); jours++;
+        ca += n_(rr[1]); couverts += n_(rr[6]); tickets += n_(rr[7]);
+        hPlan += n_(rr[10]); hPoint += n_(rr[11]); jours++;
       }
     });
   }
   var caisse = readCaCaisse_(ym);          // feuille de caisse mensuelle (HT)
   if (caisse) { ca = caisse.ca_ht; agregateurs = caisse.ca_agregateurs; sourceCa = 'caisse'; }
+  var api = readApiticMonth_(ym);          // Apitic (journalier agrégé) — prioritaire
+  if (api) { ca = api.ca_ht; couverts = api.couverts || couverts; tickets = api.tickets || tickets;
+             agregateurs = api.agregateurs || agregateurs; sourceCa = 'apitic'; }
 
   // Achats du mois par catégorie (depuis DÉPENSES, HT)
   var food = 0, labor = 0;
@@ -120,12 +125,17 @@ function getCockpit(yyyymm) {
     }
   }
 
+  var rh = readComboMonth_(ym);            // Combo (RH) — prioritaire sur la catégorie Salaires
+  if (rh) { labor = rh.masse_salariale || labor; hPlan = rh.heures_planifiees || hPlan;
+            hPoint = rh.heures_pointees || hPoint; sourceLabor = 'combo'; }
+
   var foodPct  = ca > 0 ? food / ca : 0;
   var laborPct = ca > 0 ? labor / ca : 0;
   var primePct = foodPct + laborPct;
 
   return {
-    mois: ym, jours_saisis: jours, source_ca: sourceCa, ca_agregateurs: round2_(agregateurs),
+    mois: ym, jours_saisis: jours, source_ca: sourceCa, source_labor: sourceLabor,
+    ca_agregateurs: round2_(agregateurs), tickets: tickets,
     ca_ht: round2_(ca), couverts: couverts,
     panier_moyen: couverts > 0 ? round2_(ca / couverts) : 0,
     heures_planifiees: hPlan, heures_pointees: hPoint, ecart_heures: round2_(hPoint - hPlan),
@@ -150,6 +160,34 @@ function readCaCaisse_(ym) {
   var vals = sh.getRange(2, 1, last - 1, 5).getValues(); // Mois, Periode, CA_HT, CA_TTC, CA_agregateurs
   for (var i = 0; i < vals.length; i++) {
     if (String(vals[i][0]) === ym) return { ca_ht: n_(vals[i][2]), ca_ttc: n_(vals[i][3]), ca_agregateurs: n_(vals[i][4]) };
+  }
+  return null;
+}
+
+// CA + couverts + tickets du mois depuis Apitic (table CA_APITIC, journalier).
+function readApiticMonth_(ym) {
+  var sh = SpreadsheetApp.openById(CFG.PILOTAGE_SS_ID).getSheetByName('CA_APITIC');
+  if (!sh) return null;
+  var last = sh.getLastRow();
+  if (last < 2) return null;
+  var v = sh.getRange(2, 1, last - 1, 9).getValues(); // Date,CA_HT,CA_TTC,couverts,tickets,...,CA_agregateurs
+  var ca = 0, couv = 0, tick = 0, agg = 0, found = false;
+  v.forEach(function (r) {
+    if (ymOf_(r[0]) !== ym) return;
+    found = true; ca += n_(r[1]); couv += n_(r[3]); tick += n_(r[4]); agg += n_(r[8]);
+  });
+  return found ? { ca_ht: ca, couverts: couv, tickets: tick, agregateurs: agg } : null;
+}
+
+// Heures + masse salariale du mois depuis Combo (table RH_COMBO, mensuel).
+function readComboMonth_(ym) {
+  var sh = SpreadsheetApp.openById(CFG.PILOTAGE_SS_ID).getSheetByName('RH_COMBO');
+  if (!sh) return null;
+  var last = sh.getLastRow();
+  if (last < 2) return null;
+  var v = sh.getRange(2, 1, last - 1, 4).getValues(); // Mois, hplan, hpoint, masse
+  for (var i = 0; i < v.length; i++) {
+    if (String(v[i][0]) === ym) return { heures_planifiees: n_(v[i][1]), heures_pointees: n_(v[i][2]), masse_salariale: n_(v[i][3]) };
   }
   return null;
 }

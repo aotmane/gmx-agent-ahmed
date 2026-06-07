@@ -43,6 +43,28 @@ Export caisse (CSV/Excel) ─dépôt→ /MAKI ONE/<exercice>/CAISSE/
 - `apps_script/Index.html` — interface mobile (cockpit + formulaire), thème sombre MAKI.
 - `apps_script/IngestCaisse.gs` — ingestion auto des feuilles de caisse → `CA_CAISSE`
   (`ingestCaisse`, `installCaisseTrigger`, `dryRunCaisse(fileId)`).
+- `apps_script/ApiticConnector.gs` — API caisse Apitic → `CA_APITIC` (CA + couverts + tickets/jour).
+- `apps_script/ComboConnector.gs` — API RH Combo → `RH_COMBO` (heures + masse salariale/mois).
+
+## Connecteurs API (Apitic + Combo) — cockpit 100 % auto
+Sources de données du cockpit, par **ordre de priorité** :
+| Donnée | 1er choix | repli | repli 2 |
+|--------|-----------|-------|---------|
+| CA + couverts + tickets | **Apitic** (`CA_APITIC`, jour) | Caisse CSV (`CA_CAISSE`, mois) | Saisie manuelle |
+| Heures + masse salariale | **Combo** (`RH_COMBO`, mois) | catégorie `Salaires` des DÉPENSES | — |
+| Food cost | Achats `Matières premières + Boissons` des DÉPENSES | — | — |
+
+### Mise en place (par API)
+1. **Secret** → Paramètres du projet ▸ Propriétés du script :
+   `APITIC_TOKEN` et `COMBO_TOKEN` (jamais en dur / git).
+2. **Calibrage** → lancer `apiticDryRun()` / `comboDryRun()` : ça affiche la **réponse JSON brute**.
+   On ajuste alors dans la config (`APITIC` / `COMBO`) : `BASE`, le(s) endpoint(s) `EP_*`,
+   le format d'`AUTH_*`, et les noms de champs `F_*`.
+3. **Activer** → `installApiticTrigger()` / `installComboTrigger()` (pull quotidien).
+
+> ⚠️ Les `BASE`/`EP_*`/`F_*` actuels sont des **placeholders** (les portails Apitic/Combo ne sont
+> pas publics). Il me faut, pour finaliser : l'**URL de base + méthode d'auth** de chaque API et
+> **un exemple de réponse** (ou le retour de `*DryRun()`).
 
 ## Déploiement
 1. Nouveau projet Apps Script → 2 fichiers : `Code.gs` + `Index.html` (HTML).
