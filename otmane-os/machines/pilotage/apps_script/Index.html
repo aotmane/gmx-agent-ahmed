@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<style>
+  :root{
+    --bg:#0f1115; --card:#1a1d24; --line:#2a2f3a; --txt:#e8eaed; --muted:#9aa0aa;
+    --accent:#e23744; --ok:#1db954; --warn:#f5a623; --bad:#e23744;
+  }
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:15px}
+  header{position:sticky;top:0;background:#13161c;border-bottom:1px solid var(--line);
+    padding:14px 16px;display:flex;align-items:center;gap:10px;z-index:5}
+  header h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.3px}
+  header .dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+  .tabs{display:flex;gap:8px;padding:12px 16px}
+  .tabs button{flex:1;padding:10px;border:1px solid var(--line);background:var(--card);
+    color:var(--muted);border-radius:10px;font-weight:600}
+  .tabs button.active{color:#fff;border-color:var(--accent);background:#221317}
+  .wrap{padding:0 16px 40px;max-width:560px;margin:0 auto}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .kpi .lbl{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+  .kpi .val{font-size:24px;font-weight:800;margin-top:4px}
+  .kpi .sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .kpi.ok{border-color:rgba(29,185,84,.5)} .kpi.ok .val{color:var(--ok)}
+  .kpi.warn{border-color:rgba(245,166,35,.6)} .kpi.warn .val{color:var(--warn)}
+  .kpi.bad{border-color:rgba(226,55,68,.6)} .kpi.bad .val{color:var(--bad)}
+  label{display:block;color:var(--muted);font-size:13px;margin:10px 0 4px}
+  input,textarea{width:100%;padding:11px;background:#0f1218;border:1px solid var(--line);
+    border-radius:10px;color:var(--txt);font-size:16px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .btn{width:100%;margin-top:16px;padding:14px;border:0;border-radius:12px;background:var(--accent);
+    color:#fff;font-weight:700;font-size:16px}
+  .btn:disabled{opacity:.5}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:right;padding:8px 6px;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  .muted{color:var(--muted)} .hide{display:none}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#222;
+    border:1px solid var(--line);padding:12px 18px;border-radius:10px;opacity:0;transition:.3s}
+  .toast.show{opacity:1}
+  .month{display:flex;align-items:center;gap:8px;justify-content:space-between;margin:6px 0 2px}
+  .month input{width:auto}
+</style>
+</head>
+<body>
+<header><span class="dot"></span><h1>MAKI ONE · Pilotage</h1></header>
+
+<div class="tabs">
+  <button id="tabC" class="active" onclick="show('cockpit')">📊 Cockpit</button>
+  <button id="tabS" onclick="show('saisie')">✏️ Saisie du jour</button>
+</div>
+
+<div class="wrap">
+  <!-- COCKPIT -->
+  <section id="cockpit">
+    <div class="month">
+      <span class="muted">Mois</span>
+      <input type="month" id="mois" onchange="loadCockpit()">
+    </div>
+    <div id="kpis" class="kpis"><div class="muted" style="padding:20px">Chargement…</div></div>
+    <div class="card">
+      <div class="muted" style="margin-bottom:8px">7 derniers jours saisis</div>
+      <table id="recent"><thead><tr><th>Date</th><th>CA HT</th><th>Couv.</th><th>Panier</th></tr></thead>
+      <tbody></tbody></table>
+    </div>
+  </section>
+
+  <!-- SAISIE -->
+  <section id="saisie" class="hide">
+    <div class="card">
+      <label>Date</label>
+      <input type="text" id="date" placeholder="JJ/MM/AAAA">
+      <div class="grid2">
+        <div><label>CA sur place (HT €)</label><input type="number" id="ca_sur_place" inputmode="decimal"></div>
+        <div><label>CA à emporter (HT €)</label><input type="number" id="ca_emporter" inputmode="decimal"></div>
+        <div><label>CA livraison propre (HT €)</label><input type="number" id="ca_livraison" inputmode="decimal"></div>
+        <div><label>CA agrégateurs (HT €)</label><input type="number" id="ca_agregateurs" inputmode="decimal"></div>
+        <div><label>Couverts</label><input type="number" id="couverts" inputmode="numeric"></div>
+        <div><label>Tickets</label><input type="number" id="tickets" inputmode="numeric"></div>
+        <div><label>Offerts (HT €)</label><input type="number" id="offerts" inputmode="decimal"></div>
+        <div><label>Heures planifiées</label><input type="number" id="heures_planifiees" inputmode="decimal"></div>
+        <div><label>Heures pointées</label><input type="number" id="heures_pointees" inputmode="decimal"></div>
+      </div>
+      <label>Notes</label>
+      <textarea id="notes" rows="2"></textarea>
+      <button class="btn" id="save" onclick="save()">Enregistrer le jour</button>
+    </div>
+    <div class="card muted">Le CA HT total et le panier moyen sont calculés automatiquement.
+      Si la date existe déjà, la saisie est mise à jour.</div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  function show(s){
+    document.getElementById('cockpit').classList.toggle('hide', s!=='cockpit');
+    document.getElementById('saisie').classList.toggle('hide', s!=='saisie');
+    document.getElementById('tabC').classList.toggle('active', s==='cockpit');
+    document.getElementById('tabS').classList.toggle('active', s==='saisie');
+    if(s==='cockpit') loadCockpit();
+  }
+  function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+    setTimeout(function(){t.classList.remove('show')},2600);}
+
+  function kpi(lbl,val,sub,cls){return '<div class="kpi '+(cls||'')+'"><div class="lbl">'+lbl+
+    '</div><div class="val">'+val+'</div><div class="sub">'+(sub||'')+'</div></div>';}
+
+  function loadCockpit(){
+    var ym=document.getElementById('mois').value;
+    document.getElementById('kpis').innerHTML='<div class="muted" style="padding:20px">Chargement…</div>';
+    google.script.run.withSuccessHandler(renderCockpit).withFailureHandler(function(e){
+      document.getElementById('kpis').innerHTML='<div class="muted">Erreur : '+e.message+'</div>';
+    }).getCockpit(ym);
+    google.script.run.withSuccessHandler(renderRecent).getRecentDays();
+  }
+  function renderCockpit(c){
+    var h='';
+    h+=kpi('CA HT du mois', eur(c.ca_ht), c.jours_saisis+' jours · '+c.couverts+' couverts');
+    h+=kpi('Panier moyen', eur(c.panier_moyen), 'HT / couvert');
+    h+=kpi('Food cost', c.food_pct+' %', 'cible '+c.objectifs.food+' % · '+eur(c.food_eur), c.alertes.food);
+    h+=kpi('Labor cost', c.labor_pct+' %', 'cible '+c.objectifs.labor+' % · '+eur(c.labor_eur), c.alertes.labor);
+    h+=kpi('Prime cost', c.prime_pct+' %', 'cible '+c.objectifs.prime+' %', c.alertes.prime);
+    h+=kpi('Heures', c.heures_pointees+' h', 'planif. '+c.heures_planifiees+' h · écart '+c.ecart_heures+' h',
+        c.ecart_heures>0?'warn':'ok');
+    document.getElementById('kpis').innerHTML=h;
+  }
+  function renderRecent(rows){
+    var tb=document.querySelector('#recent tbody');
+    tb.innerHTML=(rows&&rows.length)?rows.map(function(r){return '<tr><td>'+r.date+'</td><td>'+
+      eur(r.ca)+'</td><td>'+r.couverts+'</td><td>'+eur(r.panier)+'</td></tr>';}).join('')
+      :'<tr><td colspan="4" class="muted">Aucune saisie</td></tr>';
+  }
+  function save(){
+    var btn=document.getElementById('save');btn.disabled=true;
+    var p={date:val('date'),ca_sur_place:val('ca_sur_place'),ca_emporter:val('ca_emporter'),
+      ca_livraison:val('ca_livraison'),ca_agregateurs:val('ca_agregateurs'),couverts:val('couverts'),
+      tickets:val('tickets'),offerts:val('offerts'),heures_planifiees:val('heures_planifiees'),
+      heures_pointees:val('heures_pointees'),notes:val('notes')};
+    google.script.run.withSuccessHandler(function(r){
+      btn.disabled=false; toast((r.updated?'Mis à jour':'Enregistré')+' · CA '+eur(r.ca_ht));
+    }).withFailureHandler(function(e){btn.disabled=false;toast('Erreur : '+e.message);}).saveDaily(p);
+  }
+  function val(id){return document.getElementById(id).value;}
+  function eur(x){return (Number(x)||0).toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:0})+' €';}
+
+  // init : mois courant + date du jour
+  (function(){
+    var d=new Date(), ym=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    document.getElementById('mois').value=ym;
+    document.getElementById('date').value=String(d.getDate()).padStart(2,'0')+'/'+
+      String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+    loadCockpit();
+  })();
+</script>
+</body>
+</html>

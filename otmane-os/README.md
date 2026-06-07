@@ -48,6 +48,7 @@ LA TÂCHE (avant)  →  LA SOLUTION ATTENDUE  →  LA MACHINE qui l'exécute
 
 | # | Machine | Rôle | Dossier |
 |---|---------|------|---------|
+| 0 | **Pilotage** | Cockpit mobile (CA, food/labor/prime cost) + saisie quotidienne | `machines/pilotage/` |
 | 1 | **Email & Admin** | Tri intelligent GMX/Gmail, brouillons de réponse, relances | `machines/email_admin/` |
 | 2 | **Expert-comptable** | Factures, TVA, catégorisation des dépenses, export comptable | `machines/accounting/` |
 | 3 | **Second Brain** | Base de connaissance + dashboards/KPI qui nourrissent les autres | `machines/second_brain/` |
