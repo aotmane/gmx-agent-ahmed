@@ -3,21 +3,30 @@
 **Tâche :** récupérer les factures, classer les dépenses, préparer la TVA, et transmettre un
 dossier mensuel propre à l'expert-comptable.
 
-**Statut :** spec
+**Statut :** 🔧 en cours — pipeline d'ingestion + étape Claude livrés (à déployer/valider)
 
-## Flux
+## Flux (réel, Claude Max only)
 ```
-Emails + Drive (factures PDF)  →  extraction (OCR)  →  catégorisation des dépenses
-        →  calcul TVA  →  dossier mensuel  →  envoi à l'expert-comptable (email)
+Gmail ─[apps_script/IngestFactures.gs, horaire]→ Drive /MAKI ONE/<exercice>/<mois>/
+                                                 └→ file INBOX_FACTURES (À_TRAITER)
+        ÉTAPE CLAUDE (CLAUDE_STEP.md) : lit le PDF → extrait → WriteDepense
+                                                 └→ DÉPENSES → DASHBOARD
+        Livraison : dossier mensuel + récap → expert-comptable (à brancher)
 ```
 
-## Étapes
-1. **Collecte** — la machine Email & Admin repère les emails `facture` ; les PDF sont déposés
-   dans un dossier Drive `Compta/<année>/<mois>/`.
-2. **Extraction** — OCR + parsing : fournisseur, date, montant HT, TVA, TTC.
-3. **Catégorisation** — règles par fournisseur/mot-clé (achats, abonnements, frais…).
-4. **TVA** — agrégation par taux (`VAT_RATE`), préparation déclaration.
-5. **Livraison** — dossier mensuel + récap (Google Sheet) envoyé automatiquement au comptable.
+## Composants livrés
+- **`apps_script/IngestFactures.gs`** — déclencheur natif (remplace Make), rangement par
+  exercice décalé, file `INBOX_FACTURES`. → voir `apps_script/README.md`.
+- **`apps_script/WriteDepense.gs`** — endpoint sécurisé d'écriture dans `DÉPENSES` (secret en
+  Script Property, dédoublonnage `c0`, marque la file).
+- **`CLAUDE_STEP.md`** — playbook d'extraction : schéma 15 colonnes, règles de conformité
+  (HT+TVA=TTC, TVA mixte, bon destinataire, autoliquidation UE), exemple validé.
+
+## Reste à faire
+1. Déployer + valider IngestFactures (dryRun) et WriteDepense (secret).
+2. Brancher l'exécution de l'étape Claude en routine.
+3. **Livraison mensuelle** au comptable (dossier + récap Sheet → email).
+4. Sécuriser l'ancien Web App « Extraction Factures » (P7).
 
 ## ⚠️ Existant à réutiliser (Eat Sushi Manosque)
 Un pipeline factures tourne DÉJÀ en Google Apps Script — ne pas le recréer, l'orchestrer :
