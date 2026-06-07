@@ -99,7 +99,7 @@ function nextRow_(sheet) {
 // /MAKI ONE/<exercice>/FACTURES/TRAITEES/<AAAA-MM - mois AAAA>/
 function traiteesMonth_(date) {
   var maki = DriveApp.getFolderById(MAKI_ONE_FOLDER_ID);
-  var exo  = child_(maki, exerciceLabel_(date));
+  var exo  = child_(maki, wdExercice_(date));
   var fac  = child_(exo, 'FACTURES');
   var tr   = child_(fac, 'TRAITEES');
   return child_(tr, moisDossier_(date));
@@ -108,7 +108,7 @@ function child_(parent, name) {
   var it = parent.getFoldersByName(name);
   return it.hasNext() ? it.next() : parent.createFolder(name);
 }
-function exerciceLabel_(date) {
+function wdExercice_(date) {
   var y = date.getFullYear(), m = date.getMonth() + 1;
   var start = (m >= EXERCICE_START_MONTH) ? y : y - 1;
   return start + ' - ' + (start + 1);
@@ -145,7 +145,8 @@ function normCat_(c) {
     'Loyer & Charges': 'Loyer & Charges', 'Equipements': 'Equipements', 'Entretien': 'Entretien',
     'IT et Logiciels': 'IT et Logiciels', 'Livraison': 'Livraison', 'Boissons': 'Boissons',
     'Emballages': 'Emballages', 'Marketing': 'Marketing', 'Honoraires': 'Honoraires',
-    'Transport': 'Transport', 'Salaires': 'Salaires', 'Divers': 'Divers'
+    'Transport': 'Transport', 'Salaires': 'Salaires', 'Divers': 'Divers',
+    'Commissions': 'Commissions', 'Commissions paiement': 'Commissions'
   };
   return map[c] || c;
 }
