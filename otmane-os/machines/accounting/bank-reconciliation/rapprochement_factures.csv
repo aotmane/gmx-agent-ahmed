@@ -1,0 +1,162 @@
+Date facture;Fournisseur;N° facture;TTC;Statut;Date banque;Montant banque
+31/10/2025;BULLETIN PAIE - HOSSAIN Sakhawat;;20,00;paie (→ VIR SALAIRE);;
+31/10/2025;BULLETIN PAIE - LAOUADI Kyan;;;paie (→ VIR SALAIRE);;
+31/10/2025;BULLETIN PAIE - ROFIK Khan;;;paie (→ VIR SALAIRE);;
+31/10/2025;BULLETIN PAIE - NUR Hasan;;;paie (→ VIR SALAIRE);;
+31/10/2025;BULLETIN PAIE - BALDE Aly;;;paie (→ VIR SALAIRE);;
+31/10/2025;BULLETIN PAIE - AGYEMANG Aaron Gyamfi;;;paie (→ VIR SALAIRE);;
+31/10/2025;BULLETIN PAIE - BAYATLI Aysu;;896,21;paie (→ VIR SALAIRE);;
+30/11/2025;BULLETIN PAIE - HOSSAIN Sakhawat;;;paie (→ VIR SALAIRE);;
+30/11/2025;BULLETIN PAIE - NUR Hasan;;;paie (→ VIR SALAIRE);;
+30/11/2025;BULLETIN PAIE - LAOUADI Kyan;;;paie (→ VIR SALAIRE);;
+30/11/2025;BULLETIN PAIE - AGYEMANG Aaron Gyamfi;;;paie (→ VIR SALAIRE);;
+30/11/2025;BULLETIN PAIE - MESSAOUDENE Amine;;733,43;paie (→ VIR SALAIRE);;
+30/11/2025;BULLETIN PAIE - BALDE Aly;;;paie (→ VIR SALAIRE);;
+30/11/2025;BULLETIN PAIE - ROFIK Khan;;;paie (→ VIR SALAIRE);;
+06/01/2026;BULLETIN PAIE - NUR Hasan;;;paie (→ VIR SALAIRE);;
+06/01/2026;BULLETIN PAIE - HASAN Nur;;;paie (→ VIR SALAIRE);;
+29/01/2026;GROUPE OTMANE INVESTISSEMENT;26/01/1944;;❌ non trouvée;;
+31/01/2026;BULLETIN PAIE - HASAN Mehidi;;;paie (→ VIR SALAIRE);;
+31/01/2026;BULLETIN PAIE - BALDE ALY;;;paie (→ VIR SALAIRE);;
+31/01/2026;BULLETIN PAIE - HOSSAIN Sakhawat;;;paie (→ VIR SALAIRE);;
+31/01/2026;BULLETIN PAIE - AGYEMANG Aaron Gyamfi;;;paie (→ VIR SALAIRE);;
+31/01/2026;BULLETIN PAIE - MESSAOUDENE Amine;;739,53;paie (→ VIR SALAIRE);;
+31/01/2026;BULLETIN PAIE - LAOUADI Kyan;;;paie (→ VIR SALAIRE);;
+05/02/2026;J'OCEANE SAS;F26-038202;347,29;rapprochée (n°);02/03/2026;2405.75
+06/02/2026;ENGIE;520001822533;926,00;rapprochée (montant);23/02/2026;926.00
+09/02/2026;SCI ROMI;;850,00;rapprochée (montant);05/02/2026;850.00
+16/02/2026;Verisure;SDOT06356683;;❌ non trouvée;;
+21/02/2026;J'OCEANE SAS;F26-059737;658,50;rapprochée (n°);16/03/2026;2926.37
+26/02/2026;EDF;10246610775;123,06;rapprochée (montant);13/03/2026;123.06
+26/02/2026;J'OCEANE SAS;F26-063825;390,12;rapprochée (n°);16/03/2026;2926.37
+27/02/2026;PAK Emballages;202680547;100,80;rapprochée (n°);27/03/2026;100.80
+27/02/2026;PAK Emballages;202680546;806,50;rapprochée (n°);27/03/2026;806.50
+27/02/2026;PAK Emballages;202680545;311,17;rapprochée (n°);27/03/2026;311.17
+27/02/2026;PROVENCE FROID;PFFC052738;237,60;❌ non trouvée;;
+28/02/2026;Bimpli (Swile);2690007UCT;6,58;❌ non trouvée;;
+28/02/2026;BULLETIN PAIE - LAOUADI Kyan;;;paie (→ VIR SALAIRE);;
+28/02/2026;BULLETIN PAIE - AGYEMANG Aaron Gyamfi;;;paie (→ VIR SALAIRE);;
+28/02/2026;BULLETIN PAIE - BOLORMAA Bilguun;;;paie (→ VIR SALAIRE);;
+28/02/2026;BULLETIN PAIE - BALDE Aly;;;paie (→ VIR SALAIRE);;
+28/02/2026;BULLETIN PAIE - MESSAOUDENE Amine;;749,09;paie (→ VIR SALAIRE);;
+28/02/2026;BULLETIN PAIE - HOSSAIN Sakhawat;;;paie (→ VIR SALAIRE);;
+28/02/2026;BULLETIN PAIE - HASAN Mehidi;;;paie (→ VIR SALAIRE);;
+01/03/2026;WALLBOX FRANCE SAS;EBRN202600038531;53,00;❌ non trouvée;;
+03/03/2026;FOODEX SAS;25853598;822,12;❌ non trouvée;;
+03/03/2026;J'OCEANE SAS;F26-069311;205,45;rapprochée (n°);31/03/2026;1536.81
+03/03/2026;TA Provence Languedoc (Pomona);8481194589;260,34;rapprochée (groupé);11/08/2025;groupe 990.28
+07/03/2026;ENGIE;220008934145;773,98;rapprochée (montant);23/03/2026;773.98
+07/03/2026;J'OCEANE SAS;F26-075678;357,74;rapprochée (n°);31/03/2026;1536.81
+07/03/2026;TA Provence Languedoc (Pomona);8481197593;162,92;rapprochée (groupé);11/08/2025;groupe 990.28
+09/03/2026;CQFD EXPERTISE;25653;;❌ non trouvée;;
+09/03/2026;METRO France;0/0(146)0052/011188;435,55;rapprochée (montant);19/03/2026;435.55
+10/03/2026;FOODEX SAS;25855715;908,03;❌ non trouvée;;
+10/03/2026;J'OCEANE SAS;F26-076902;388,86;rapprochée (n°);31/03/2026;1536.81
+10/03/2026;SAS ESF - EAT SUSHI;F-2026030119;;❌ non trouvée;;
+10/03/2026;TA Provence Languedoc (Pomona);8481198915;185,60;❌ non trouvée;;
+12/03/2026;J'OCEANE SAS;F26-080169;185,25;rapprochée (n°);31/03/2026;1536.81
+12/03/2026;TA Provence Languedoc (Pomona);8481200328;204,78;rapprochée (groupé);11/08/2025;groupe 990.28
+14/03/2026;J'OCEANE SAS;F26-083367;399,51;rapprochée (n°);31/03/2026;1536.81
+17/03/2026;FOODEX SAS;25857653;928,60;❌ non trouvée;;
+17/03/2026;J'OCEANE SAS;F26-085267;430,17;rapprochée (n°);15/04/2026;3134.46
+18/03/2026;TA Provence Languedoc (Pomona);8481203999;233,52;❌ non trouvée;;
+19/03/2026;J'OCEANE SAS;F26-089001;208,47;rapprochée (n°);15/04/2026;3134.46
+20/03/2026;COMPTOIRS OCEANIQUES;947491;829,00;rapprochée (montant);20/04/2026;829.00
+21/03/2026;J'OCEANE SAS;F26-091938;428,96;rapprochée (n°);15/04/2026;3134.46
+23/03/2026;METRO France;0/0(146)0054/007872;550,03;rapprochée (montant);02/04/2026;550.03
+24/03/2026;J'OCEANE SAS;F26-093957;603,59;rapprochée (n°);15/04/2026;3134.46
+24/03/2026;TA Provence Languedoc (Pomona);8481207773;210,94;rapprochée (groupé);11/08/2025;groupe 990.28
+25/03/2026;FOODEX SAS;25860365;359,02;❌ non trouvée;;
+25/03/2026;FOODEX SAS;25859984;618,11;❌ non trouvée;;
+26/03/2026;J'OCEANE SAS;F26-097261;463,16;rapprochée (n°);15/04/2026;3134.46
+27/03/2026;TA Provence Languedoc (Pomona);8481210464;206,21;rapprochée (groupé);10/09/2025;groupe 732.77
+28/03/2026;J'OCEANE SAS;F26-100645;603,89;rapprochée (n°);15/04/2026;3134.46
+28/03/2026;METRO France;0/0(134)0055/015173;33,98;❌ non trouvée;;
+31/03/2026;ALPES DETERGENTS;213915;275,98;rapprochée (montant);16/04/2026;275.98
+31/03/2026;Bimpli (Swile);269000F8QV;4,32;❌ non trouvée;;
+31/03/2026;FOODEX SAS;25861520;946,20;❌ non trouvée;;
+31/03/2026;J'OCEANE SAS;F26-102816;396,22;rapprochée (n°);15/04/2026;3134.46
+31/03/2026;LYF SAS;LYF260400000517;417,60;❌ non trouvée;;
+31/03/2026;PAK Emballages;202681172;867,96;rapprochée (n°);30/04/2026;867.96
+31/03/2026;Too Good To Go France;910574;58,01;❌ non trouvée;;
+31/03/2026;BULLETIN PAIE - BALDE Aly;;;paie (→ VIR SALAIRE);;
+31/03/2026;BULLETIN PAIE - AHMOD Mohammed;;;paie (→ VIR SALAIRE);;
+31/03/2026;BULLETIN PAIE - LAOUADI Kyan;;;paie (→ VIR SALAIRE);;
+31/03/2026;BULLETIN PAIE - HASAN Mehidi;;;paie (→ VIR SALAIRE);;
+31/03/2026;BULLETIN PAIE - HOSSAIN Sakhawat;;;paie (→ VIR SALAIRE);;
+31/03/2026;BULLETIN PAIE - MESSAOUDENE Amine;;753,26;paie (→ VIR SALAIRE);;
+31/03/2026;BULLETIN PAIE - AGYEMANG Aaron Gyamfi;;;paie (→ VIR SALAIRE);;
+01/04/2026;APITIC;FC\_2026\_1675;358,80;❌ non trouvée;;
+01/04/2026;Combo - Snapshift SAS;363396;155,40;rapprochée (montant);07/04/2026;155.40
+02/04/2026;J'OCEANE SAS RUNGIS;F26-106193;402,40;rapprochée (groupé);30/04/2026;groupe 2442.58
+02/04/2026;TA Provence Languedoc (Pomona);8481214435;300,77;rapprochée (groupé);10/09/2025;groupe 732.77
+04/04/2026;J'OCEANE SAS;F26-109920;693,45;rapprochée (groupé);30/04/2026;groupe 2442.58
+04/04/2026;TA Provence Languedoc (Pomona);8481216391;225,84;rapprochée (groupé);10/09/2025;groupe 732.77
+06/04/2026;ENGIE;320008264350;818,18;rapprochée (montant);21/04/2026;818.18
+06/04/2026;METRO France;0/0(146)0057/003633;497,11;rapprochée (montant);16/04/2026;497.11
+07/04/2026;FOODEX SAS;25863874;714,90;❌ non trouvée;;
+07/04/2026;FOODEX SAS;25863873;481,92;❌ non trouvée;;
+08/04/2026;J'OCEANE SAS;F26-112121;389,11;rapprochée (groupé);30/04/2026;groupe 2442.58
+09/04/2026;CQFD EXPERTISE;25962;;❌ non trouvée;;
+09/04/2026;TA Provence Languedoc (Pomona);8481218726;292,28;❌ non trouvée;;
+10/04/2026;COMPTOIRS OCEANIQUES;951555;484,78;❌ non trouvée;;
+10/04/2026;SAS ESF - EAT SUSHI;F-2026040159;;❌ non trouvée;;
+11/04/2026;J'OCEANE SAS;F26-118482;583,26;rapprochée (groupé);30/04/2026;groupe 2442.58
+11/04/2026;TA Provence Languedoc (Pomona);8481220655;150,55;rapprochée (groupé);10/07/2025;groupe 686.78
+14/04/2026;J'OCEANE SAS;F26-119856;374,36;rapprochée (groupé);30/04/2026;groupe 2442.58
+14/04/2026;TA Provence Languedoc (Pomona);8481222058;271,97;❌ non trouvée;;
+15/04/2026;ALPES DETERGENTS;214568;147,46;❌ non trouvée;;
+15/04/2026;Dokaa;F-2026-04620;463,80;❌ non trouvée;;
+16/04/2026;J'OCEANE SAS;F26-123302;185,45;❌ non trouvée;;
+16/04/2026;KEYYO S.A.;1504067518;74,32;rapprochée (montant);21/04/2026;74.32
+18/04/2026;J'OCEANE SAS;F26-127564;663,74;❌ non trouvée;;
+18/04/2026;TA Provence Languedoc (Pomona);8481225543;311,11;❌ non trouvée;;
+20/04/2026;METRO France;0/0(146)0057/005056;392,57;rapprochée (montant);30/04/2026;392.57
+21/04/2026;GRENKE LOCATION S.A.S.;0000948779/2026;83,23;❌ non trouvée;;
+21/04/2026;J'OCEANE SAS;F26-129543;167,56;❌ non trouvée;;
+21/04/2026;TA Provence Languedoc (Pomona);8481226939;207,58;❌ non trouvée;;
+23/04/2026;TA Provence Languedoc (Pomona);8481228562;240,72;rapprochée (groupé);10/07/2025;groupe 686.78
+25/04/2026;J'OCEANE SAS;F26-136241;518,36;❌ non trouvée;;
+25/04/2026;METRO France;0/0(146)0052/019646;82,57;❌ non trouvée;;
+26/04/2026;EDF;10250820099;92,14;❌ non trouvée;;
+28/04/2026;FOODEX SAS;25868746;956,41;❌ non trouvée;;
+28/04/2026;J OCEANE SAS;F26-137466;343,33;❌ non trouvée;;
+28/04/2026;TA Provence Languedoc (Pomona);8481231690;151,30;rapprochée (groupé);11/08/2025;groupe 990.28
+28/04/2026;TILIZ;FC2600961;284,85;❌ non trouvée;;
+29/04/2026;CHATEAU SAINT JEAN;FA260319;439,13;❌ non trouvée;;
+29/04/2026;METRO France;0/0(146)0057/006290;376,67;❌ non trouvée;;
+30/04/2026;ALPES DETERGENTS;215552;250,46;❌ non trouvée;;
+30/04/2026;ALPES DETERGENTS;215501;207,10;❌ non trouvée;;
+30/04/2026;PAK Emballages;202681884;269,42;❌ non trouvée;;
+30/04/2026;PAK Emballages;202681883;741,40;❌ non trouvée;;
+30/04/2026;PAK Emballages;202681882;359,14;❌ non trouvée;;
+30/04/2026;SAS Too Good To Go France;926268;74,48;❌ non trouvée;;
+30/04/2026;TA Provence Languedoc (Pomona);8481233407;295,52;rapprochée (groupé);10/07/2025;groupe 686.78
+30/04/2026;BULLETIN PAIE - LAOUADI Kyan;;;paie (→ VIR SALAIRE);;
+30/04/2026;BULLETIN PAIE - HOSSAIN Sakhawat;;;paie (→ VIR SALAIRE);;
+30/04/2026;BULLETIN PAIE - MESSAOUDENE Amine;;742,23;paie (→ VIR SALAIRE);;
+30/04/2026;BULLETIN PAIE - BALDE ALY;;;paie (→ VIR SALAIRE);;
+30/04/2026;BULLETIN PAIE - HASAN Mehidi;;;paie (→ VIR SALAIRE);;
+30/04/2026;BULLETIN PAIE - AHMOD Mohammed;;;paie (→ VIR SALAIRE);;
+30/04/2026;BULLETIN PAIE - AGYEMANG Aaron Gyamfi;;;paie (→ VIR SALAIRE);;
+01/05/2026;VERISURE;SDCF62391362;69,22;hors période (mai, relevé indispo.);;
+01/05/2026;Combo - Snapshift SAS;371738;155,40;hors période (mai, relevé indispo.);;
+01/05/2026;WALLBOX FRANCE SAS;EBRN202600047250;49,00;hors période (mai, relevé indispo.);;
+02/05/2026;J'OCEANE SAS;F26-144811;267,18;hors période (mai, relevé indispo.);;
+02/05/2026;J'OCEANE SAS;F26-143145;540,56;hors période (mai, relevé indispo.);;
+04/05/2026;APITIC;FC\_2026\_2156;358,80;hors période (mai, relevé indispo.);;
+04/05/2026;ENGIE;820000796733;542,54;hors période (mai, relevé indispo.);;
+04/05/2026;SAS ESF - EAT SUSHI;F-2026050203;;hors période (mai, relevé indispo.);;
+05/05/2026;FOODEX SAS;25871441;792,55;hors période (mai, relevé indispo.);;
+05/05/2026;J OCEANE;Relevé 26091395;;hors période (mai, relevé indispo.);;
+05/05/2026;J'OCEANE SAS;F26-146897;196,56;hors période (mai, relevé indispo.);;
+05/05/2026;J'OCEANE SAS;F26-145069;191,97;hors période (mai, relevé indispo.);;
+05/05/2026;METRO France;0/0(146)0052/021168;429,16;hors période (mai, relevé indispo.);;
+05/05/2026;TA Provence Languedoc;8481236345;248,86;hors période (mai, relevé indispo.);;
+05/05/2026;Groupon France;GRPFR2026040000040098;7,97;hors période (mai, relevé indispo.);;
+05/05/2026;Groupon France;GRPFR2026040000044372;18,01;hors période (mai, relevé indispo.);;
+07/05/2026;J'OCEANE SAS;F26-148485;379,49;hors période (mai, relevé indispo.);;
+09/05/2026;CQFD EXPERTISE;26260;976,80;hors période (mai, relevé indispo.);;
+09/05/2026;J'OCEANE SAS;F26-151081;579,13;hors période (mai, relevé indispo.);;
+11/05/2026;Sci romi;;850,00;hors période (mai, relevé indispo.);;
+12/05/2026;TA Provence Languedoc;8481240890;218,73;hors période (mai, relevé indispo.);;
