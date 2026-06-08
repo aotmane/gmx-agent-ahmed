@@ -13,6 +13,28 @@ en 3 endroits** incohérents.
 
 ---
 
+## ✅ Journal de résolution — optimisation du 2026-06-08
+Refonte appliquée : **modèle d'exécution unique « Claude (Max) + MCP + Apps Script », zéro service
+Python hébergé.**
+
+| Finding | État | Ce qui a été fait |
+|---------|------|-------------------|
+| **A1** Mot de passe GMX déployé | ✅ corrigé (résiduel) | `gmx-proxy-service.py` **supprimé** + `Procfile`/`runtime.txt` retirés → plus déployé. **Résiduel : rotation du mot de passe GMX + purge de l'historique git = action côté compte.** |
+| **A2** Orchestrateur court-circuité | ✅ corrigé | Plus de service web : `orchestrator/os.py` devient le **registre unique**, plus de point d'entrée concurrent. |
+| **A3** `run` cassé | ✅ corrigé | Import Flask supprimé ; `os.py list` / `os.py show <machine>` fonctionnent sans packaging fragile. |
+| **A4** Statut éclaté ×3 | ✅ corrigé | Source de vérité = registre `os.py` (pilotage ajouté, accounting corrigé) ; README + INVENTORY réalignés dessus. |
+| **A5** Dérive n8n/Make | ✅ corrigé | README/INVENTORY/CLAUDE.md réalignés sur Apps Script + Claude/MCP ; n8n/Make ⇒ option self-hosted. |
+| **A6** Deux requirements | ✅ corrigé | Racine supprimée ; `otmane-os/requirements.txt` = stdlib only (plus de Flask). |
+| **A9** Bug `__main__` | ✅ corrigé | Fichier supprimé avec A1. |
+| **A7** Compta Python↔Sheet non câblé | ⏳ ouvert | Rapprochement validé mais `importerReleve()` à corriger / étape d'écriture à câbler. |
+| **A8** Carte des secrets | ⏳ partiel | Noté dans `.env.example` + `CLAUDE.md` (Script Properties vs `.env`) ; section dédiée à formaliser. |
+| **A10/A11/A12** Tests, données générées, machines spec | ⏳ ouvert | Hors périmètre de cette passe. |
+
+Email & Admin **n'a plus de serveur** : il devient une capacité **Claude + Gmail MCP**
+(`machines/email_admin/README.md`).
+
+---
+
 ## 1. Architecture réelle (telle qu'implémentée)
 
 ```

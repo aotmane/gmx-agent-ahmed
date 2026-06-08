@@ -1,2 +1,9 @@
-flask==2.3.3
-python-dotenv==1.0.1
+# OTMANE OS — dépendances Python.
+#
+# L'OS ne fait tourner AUCUN service Python hébergé : les machines sont en
+# Google Apps Script ou en Claude + MCP. Les seuls scripts Python sont des
+# outils ponctuels (ex. machines/accounting/bank-reconciliation/parse_releve.py),
+# qui n'utilisent que la bibliothèque standard.
+#
+# → Rien à installer pour l'instant. Ajoute ici une dépendance seulement si un
+#   outil Python en a réellement besoin.

@@ -5,8 +5,9 @@ mais adapté à l'activité réelle : **Eat Sushi Manosque** (restaurant, exploi
 sous le holding **Groupe Otmane Investissement**.
 
 > **Moteur (cerveau) :** Claude Code CLI — orchestre, génère et fait évoluer les machines.
-> **Machines (exécution) :** apps no-code connectées en MCP (n8n / Make, Gmail, Google Drive,
-> Google Calendar, génération vidéo/image, Gamma, Canva) + micro-services Python.
+> **Machines (exécution) — modèle unique :** **Google Apps Script** (gratuit, déclencheurs natifs)
+> **et/ou Claude + MCP** (Gmail, Drive, Calendar, génération vidéo/image, Gamma, Canva).
+> **Aucun service Python hébergé, aucun SaaS payant.**
 >
 > Tu ne codes pas à la main : le CLI pilote, les machines exécutent.
 
@@ -44,19 +45,22 @@ LA TÂCHE (avant)  →  LA SOLUTION ATTENDUE  →  LA MACHINE qui l'exécute
  └──────────┘   └────────────┘  └─────────────┘  └──────────────┘
 ```
 
-## 3. Les 5 machines
+## 3. Les machines
 
-| # | Machine | Rôle | Dossier |
-|---|---------|------|---------|
-| 0 | **Pilotage** | Cockpit mobile (CA, food/labor/prime cost) + saisie quotidienne | `machines/pilotage/` |
-| 1 | **Email & Admin** | Tri intelligent GMX/Gmail, brouillons de réponse, relances | `machines/email_admin/` |
-| 2 | **Expert-comptable** | Factures, TVA, catégorisation des dépenses, export comptable | `machines/accounting/` |
-| 3 | **Second Brain** | Base de connaissance + dashboards/KPI qui nourrissent les autres | `machines/second_brain/` |
-| 4 | **Contenu & Distribution** | Idées → scripts → vidéo/visuels → publication multi-plateformes | `machines/content/` |
-| 5 | **Leads** | Prospection, capture, relance email, CRM | `machines/leads/` |
+| Machine | Rôle | Modèle | Statut | Dossier |
+|---------|------|--------|--------|---------|
+| **Pilotage** | Cockpit mobile (CA, food/labor/prime cost) + saisie quotidienne | Apps Script | livré | `machines/pilotage/` |
+| **Expert-comptable** | Factures, TVA, catégorisation, rapprochement bancaire, export | Apps Script | en cours | `machines/accounting/` |
+| **Email & Admin** | Tri des e-mails Workspace, brouillons de réponse, relances | Claude + MCP | v1 | `machines/email_admin/` |
+| **Second Brain** | Base de connaissance + KPIs qui nourrissent les autres | Apps Script | spec | `machines/second_brain/` |
+| **Contenu & Distribution** | Idées → scripts → vidéo/visuels → publication multi-plateformes | Claude + MCP | spec | `machines/content/` |
+| **Leads** | Prospection, capture, relance email, CRM | Claude + MCP | spec | `machines/leads/` |
+
+> **Source de vérité du statut :** le registre `orchestrator/os.py` (`python orchestrator/os.py list`).
+> Ce tableau et `INVENTORY.md` doivent le refléter.
 
 Chaque dossier de machine contient un `README.md` qui décrit : la tâche, le déclencheur,
-le flux, les **outils MCP** utilisés, et l'état (`spec` / `en cours` / `prod`).
+le flux, les **outils** utilisés, et l'état (`spec` / `en cours` / `livré`).
 
 ## 4. Stack technique — contrainte « Claude Max only »
 
@@ -67,37 +71,40 @@ payant** (pas de n8n/Make cloud, pas de coûts d'API en plus). Voir `AUDIT.md`.
 |--------|-------|--------|
 | Cerveau | **Claude (Max)** / Claude Code | orchestrateur |
 | Machines (exécution) | **Google Apps Script** (gratuit, déjà en place) | couche principale |
-| Email | **Gmail** + service IMAP GMX (`email_admin`) | machine 1 |
+| Email | **Gmail via MCP** (Claude rédige/trie, aucun serveur) | machine Email & Admin |
 | Données / Second Brain | **Google Sheets** (Pilotage + Suivi des dépenses) | source de vérité |
-| Stockage / docs | **Google Drive** | partagé |
-| Agenda | **Google Calendar** | partagé |
-| Secrets | fichier `.env` (jamais commité) | sécurité |
+| Stockage / docs | **Google Drive** (MCP) | partagé |
+| Agenda | **Google Calendar** (MCP) | partagé |
+| Secrets | Script Properties (Apps Script) + `.env` pour les outils Python | sécurité |
 
-> n8n/Make ne sont envisagés que **self-hosted gratuit** si vraiment nécessaire. Par défaut :
-> Apps Script (le pont `doGet/doPost` existant) + Claude.
+> **Aucun service Python hébergé** : les machines sont en Apps Script ou en Claude + MCP.
+> n8n/Make ne sont envisagés que **self-hosted gratuit** si vraiment nécessaire.
 
 ## 5. Sécurité (à lire avant tout)
 
-- **Aucun secret en dur.** Tous les identifiants passent par `.env` (voir `.env.example`).
-- ⚠️ L'ancien `gmx-proxy-service.py` (racine du repo) contient un **mot de passe GMX en clair**,
-  présent dans l'historique git → **à changer / révoquer**. La machine 1 le remplace par
-  une config par variables d'environnement.
-- `.env` est ignoré par git (voir `.gitignore`).
+- **Aucun secret en dur.** Apps Script → **Script Properties** ; outils Python → `.env` (ignoré par git).
+- **Surface réduite :** plus aucun endpoint public ni service hébergé côté OS (le scanner GMX
+  legacy `gmx-proxy-service.py`, qui contenait un mot de passe en clair, a été **supprimé**).
+- ⚠️ Ce mot de passe GMX reste **dans l'historique git** (commit `38fd2e4`) → **à révoquer**
+  côté compte GMX, et historique à purger (BFG / git-filter-repo) si la boîte existe encore.
 
 ## 6. Démarrage
 
 ```bash
-cp otmane-os/.env.example otmane-os/.env   # puis remplis tes secrets
-pip install -r otmane-os/requirements.txt
-python otmane-os/orchestrator/os.py --help
+python otmane-os/orchestrator/os.py list           # machines + statuts (source de vérité)
+python otmane-os/orchestrator/os.py show pilotage  # détail d'une machine
 ```
+Pas d'installation : les machines tournent en Apps Script (Google) ou via Claude + MCP.
+Les rares outils Python (ex. `machines/accounting/bank-reconciliation/`) sont en bibliothèque
+standard. `cp otmane-os/.env.example otmane-os/.env` uniquement si un outil le demande.
 
 ## 7. Feuille de route (les « étapes » adaptées)
 
 - [x] **Étape 0 — Inventaire** des tâches (`INVENTORY.md`)
-- [x] **Étape 1 — Machine Email & Admin** (refactor sécurisé du service GMX)
-- [ ] **Étape 2 — Second Brain** (base de connaissance + KPIs)
-- [ ] **Étape 3 — Expert-comptable** (pipeline factures/TVA)
-- [ ] **Étape 4 — Contenu & Distribution**
-- [ ] **Étape 5 — Leads & CRM**
-- [ ] **Étape 6 — Boucle d'amélioration** (les perfs réinjectées dans le Second Brain)
+- [x] **Étape 1 — Email & Admin** (Gmail MCP ; service GMX legacy retiré)
+- [x] **Étape 2 — Pilotage** (cockpit Apps Script + connecteurs Apitic/Combo/Caisse)
+- [~] **Étape 3 — Expert-comptable** (ingestion + conformité + rapprochement bancaire livrés)
+- [ ] **Étape 4 — Second Brain** (base de connaissance + KPIs)
+- [ ] **Étape 5 — Contenu & Distribution**
+- [ ] **Étape 6 — Leads & CRM**
+- [ ] **Étape 7 — Boucle d'amélioration** (les perfs réinjectées dans le Second Brain)
