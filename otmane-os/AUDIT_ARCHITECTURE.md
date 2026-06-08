@@ -65,7 +65,8 @@ est décoratif : le `Procfile` et les `.gs` vivent leur vie à côté.
 ### 🔴 Critique
 
 **A1 — Mot de passe GMX en clair, et c'est LUI qui est déployé.**
-`gmx-proxy-service.py` (racine) contient `password: '@Le*2022*'` en dur, présent dans l'historique git
+`gmx-proxy-service.py` (racine) contenait le mot de passe GMX **en dur** (caviardé ici : `@L…`),
+présent dans l'historique git
 (commit `38fd2e4`). Or le `Procfile` lance précisément ce fichier :
 ```
 web: python gmx-proxy-service.py
