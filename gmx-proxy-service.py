@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
-from flask import Flask, request, jsonify
+import os
 import imaplib
 import email
 import json
 from datetime import datetime, timedelta
 
+from flask import Flask, request, jsonify
+
 app = Flask(__name__)
 
+# Identifiants charges depuis l'environnement (jamais en clair dans le code).
+# Definir GMX_EMAIL et GMX_PASSWORD dans les variables d'environnement.
 GMX_CONFIG = {
-    'email': '***REMOVED***',
-    'password': '***REMOVED***',
-    'imap_host': 'mail.gmx.com',
-    'imap_port': 993
+    'email': os.environ.get('GMX_EMAIL'),
+    'password': os.environ.get('GMX_PASSWORD'),
+    'imap_host': os.environ.get('GMX_IMAP_HOST', 'mail.gmx.com'),
+    'imap_port': int(os.environ.get('GMX_IMAP_PORT', 993)),
 }
 
 class GMXProxy:
@@ -20,6 +24,8 @@ class GMXProxy:
         
     def connect_imap(self):
         try:
+            if not self.config['email'] or not self.config['password']:
+                raise Exception("GMX_EMAIL / GMX_PASSWORD non definis dans l'environnement")
             mail = imaplib.IMAP4_SSL(self.config['imap_host'], self.config['imap_port'])
             mail.login(self.config['email'], self.config['password'])
             return mail
@@ -114,6 +120,5 @@ def test_connection():
         })
 
 if __name__ == '__main__':
-    import os
-port = int(os.environ.get('PORT', 5000))
-app.run(host='0.0.0.0', port=port, debug=False)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
