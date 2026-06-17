@@ -1,17 +1,10 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": null,
-  "buildCommand": "echo \"Static site, no build\"",
-  "installCommand": "echo \"Static site, no install\"",
-  "outputDirectory": "landing",
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "headers": [
-    {
-      "source": "/assets/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
-    }
+  "version": 2,
+  "builds": [
+    { "src": "landing/**", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/", "dest": "/landing/index.html" },
+    { "src": "/(.*)", "dest": "/landing/$1" }
   ]
 }
