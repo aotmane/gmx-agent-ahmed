@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Avizo">
+  <!-- Version monochrome (impression, tampon, filigrane). Changer 'currentColor' au besoin. -->
+  <path fill="currentColor"
+        d="M20 6 h24 a14 14 0 0 1 14 14 v10 a14 14 0 0 1 -14 14 H34 l-9 9 v-9 h-5 A14 14 0 0 1 6 30 V20 A14 14 0 0 1 20 6 Z"/>
+  <polygon fill="#FFFFFF"
+           points="32,12 35.06,20.79 44.36,20.98 36.95,26.61 39.64,35.52 32,30.2 24.36,35.52 27.05,26.61 19.64,20.98 28.94,20.79"/>
+</svg>

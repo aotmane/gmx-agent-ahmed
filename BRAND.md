@@ -18,8 +18,14 @@
 
 ## 2. Logo
 
-- `assets/avizo-icon.svg` — icône seule (favicon, app mobile, avatar réseaux).
-- `assets/avizo-logo.svg` — logo complet (icône + wordmark).
+| Fichier | Usage |
+|---|---|
+| `assets/avizo-logo.svg` | Logo complet (icône + wordmark) — fond clair |
+| `assets/avizo-logo-dark.svg` | Logo complet — wordmark blanc, pour fonds foncés |
+| `assets/avizo-icon.svg` | Icône seule — favicon transparent, avatar réseaux |
+| `assets/avizo-icon-mono.svg` | Icône monochrome (`currentColor`) — impression, tampon, filigrane |
+| `assets/favicon.svg` | Favicon avec pastille pleine (lisible dans l'onglet) |
+| `assets/og-image.svg` | Image de partage social (1200×630) |
 
 **Symbolique** : une **bulle de conversation** (SMS / relation client) fusionnée avec une **étoile** (avis, note 5★). Le produit raconté en une forme.
 

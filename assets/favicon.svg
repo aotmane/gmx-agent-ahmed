@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Avizo">
+  <defs>
+    <linearGradient id="favGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5B5BF7"/>
+      <stop offset="100%" stop-color="#9B5BF7"/>
+    </linearGradient>
+  </defs>
+  <!-- Pastille pleine pour rester lisible dans l'onglet -->
+  <rect width="64" height="64" rx="16" fill="url(#favGrad)"/>
+  <polygon fill="#FFFFFF"
+           points="32,13 35.6,23.4 46.6,23.6 37.8,30.2 41,40.7 32,34.4 23,40.7 26.2,30.2 17.4,23.6 28.4,23.4"/>
+</svg>
